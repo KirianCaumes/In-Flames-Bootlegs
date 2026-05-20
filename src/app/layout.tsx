@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
     title: 'In Flames — Bootlegs & Live Shows Archive',
-    metadataBase: new URL('https://in-flames-bootleg.kiriancaumes.fr'),
+    metadataBase: new URL('https://in-flames-bootlegs.kiriancaumes.fr'),
     description:
         'The most complete community archive of In Flames bootlegs and live recordings. Browse, filter, and discover hundreds of live shows from 1994 to today.',
     keywords: ['In Flames', 'bootleg', 'live show', 'concert', 'recording', 'archive', 'setlist', 'live recording'],
