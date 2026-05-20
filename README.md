@@ -1,6 +1,8 @@
-# In Flames Bootleg Archive
+# In Flames Bootlegs Archive
 
 A searchable archive of In Flames concert recordings and bootlegs. Discover live performances from around the world, filter by year, location, and song, and find videos of your favorite shows. 🎟️
+
+Check it out [here](<https://in-flames-bootlegs.kiriancaumes.fr/>) 👈
 
 ![Preview](https://github-production-user-asset-6210df.s3.amazonaws.com/24525092/595535598-4d45c131-f203-45a4-a3d7-31e1a5c13ae6.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260520%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260520T143853Z&X-Amz-Expires=300&X-Amz-Signature=0f5f2ccbf84095e6519e614e9b44add7728198332de4133bc1f4a77f43c73be3&X-Amz-SignedHeaders=host&response-content-type=image%2Fpng)
 
@@ -72,13 +74,13 @@ A `Dockerfile` is included for containerised deployments.
 
 ```bash
 # Build the image
-docker build -t in-flames-bootleg .
+docker build -t in-flames-bootlegs .
 
 # Run the container (pass environment variables at runtime)
 docker run -p 3000:3000 \
   -e GOOGLE_SHEET_URL="<your-sheet-url>" \
   -e YOUTUBE_API_KEY="<your-api-key>" \
-  in-flames-bootleg
+  in-flames-bootlegs
 ```
 
 The app listens on port `3000`.
