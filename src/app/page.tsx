@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import { fetchShows } from 'lib/shows'
 import ArchivePage from 'components/ArchivePage'
 
@@ -8,5 +9,13 @@ import ArchivePage from 'components/ArchivePage'
  */
 export default async function Page() {
     const shows = await fetchShows()
-    return <ArchivePage shows={shows} />
+    const ua = (await headers()).get('user-agent') ?? ''
+    const device = /mobile|android|iphone|ipad|ipod/i.test(ua) ? 'mobile' : 'desktop'
+
+    return (
+        <ArchivePage
+            device={device}
+            shows={shows}
+        />
+    )
 }

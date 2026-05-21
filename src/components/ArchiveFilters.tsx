@@ -191,6 +191,8 @@ interface ArchiveFiltersProps {
     readonly filters: Filters
     /** Callback when filters change */
     readonly onFiltersChange: (filters: Filters) => void
+    /** Whether the filter panel is open by default (server-detected from User-Agent) */
+    readonly defaultOpen: boolean
 }
 
 /**
@@ -198,8 +200,8 @@ interface ArchiveFiltersProps {
  * Renders year/country/city/song selectors, checkbox toggles, and sort order.
  * @returns Filter UI for refining the list of shows displayed in the archive.
  */
-export default function ArchiveFilters({ shows, filters, onFiltersChange }: ArchiveFiltersProps) {
-    const [areFiltersOpen, setAreFiltersOpen] = useState(false)
+export default function ArchiveFilters({ shows, filters, onFiltersChange, defaultOpen }: ArchiveFiltersProps) {
+    const [areFiltersOpen, setAreFiltersOpen] = useState(defaultOpen)
 
     // Open filters by default on desktop
     useEffect(() => {

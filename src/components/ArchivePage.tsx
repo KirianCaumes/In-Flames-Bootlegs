@@ -19,9 +19,12 @@ import type { Show } from 'lib/shows'
  */
 export default function ArchivePage({
     shows,
+    device,
 }: {
     /** Shows to display and filter */
     readonly shows: Array<Show>
+    /** Detected device type for responsive behavior */
+    readonly device: 'mobile' | 'desktop'
 }) {
     const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
     const deferredFilters = useDeferredValue(filters)
@@ -88,6 +91,7 @@ export default function ArchivePage({
             <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
                 {/* Filters */}
                 <ArchiveFilters
+                    defaultOpen={device === 'desktop'}
                     filters={filters}
                     onFiltersChange={setFilters}
                     shows={shows}
