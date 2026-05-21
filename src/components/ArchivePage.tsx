@@ -1,6 +1,6 @@
 'use client'
 
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useTransition, useState, startTransition } from 'react'
 import Image from 'next/image'
 import ShowCard from 'components/ShowCard'
 import { flagUrl } from 'lib/flags'
@@ -200,6 +200,7 @@ export default function ArchivePage({
     readonly shows: Array<Show>
 }) {
     const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
+    const [filtersOpen, setFiltersOpen] = useState(false)
     const deferredFilters = useDeferredValue(filters)
     const isStale = filters !== deferredFilters
 
@@ -279,6 +280,7 @@ export default function ArchivePage({
                             alt="Bootlegs Archive"
                             className="w-14 h-14 object-cover shrink-0"
                             src={IconSvg as string}
+                            loading="eager"
                         />
                         <div className="w-px h-8 bg-gradient-to-b from-brand-500 to-brand-600 hidden sm:block" />
                         <div>
@@ -297,8 +299,30 @@ export default function ArchivePage({
             <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
                 {/* Filters */}
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</h2>
+                    <div className={`flex items-center justify-between ${filtersOpen ? 'mb-4' : 'sm:mb-4'}`}>
+                        <button
+                            className="sm:hidden flex items-center gap-1.5"
+                            onClick={() => {
+                                startTransition(() => setFiltersOpen(prev => !prev))
+                            }}
+                            type="button"
+                        >
+                            <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</span>
+                            <svg
+                                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${filtersOpen ? 'rotate-180' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M19 9l-7 7-7-7"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                />
+                            </svg>
+                        </button>
+                        <h2 className="hidden sm:block text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</h2>
                         <button
                             className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10"
                             onClick={() => {
@@ -310,148 +334,155 @@ export default function ArchivePage({
                         </button>
                     </div>
 
-                    {/* Primary filters */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-                        {/* Year */}
-                        <div className="flex flex-col gap-1">
-                            <label
-                                className="text-xs text-gray-400 font-medium"
-                                htmlFor="filter-year"
-                            >
-                                Year
-                            </label>
-                            <div className="relative">
-                                <select
-                                    // eslint-disable-next-line max-len
-                                    className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
-                                    id="filter-year"
-                                    onChange={e => {
-                                        patch('year', e.target.value)
-                                    }}
-                                    value={filters.year}
-                                >
-                                    <option value="">All years</option>
-                                    {years.map(y => (
-                                        <option
-                                            key={y}
-                                            value={y}
-                                        >
-                                            {y}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown />
-                            </div>
-                        </div>
-
-                        {/* Country */}
-                        <div className="flex flex-col gap-1">
-                            <label
-                                className="text-xs text-gray-400 font-medium"
-                                htmlFor="filter-country"
-                            >
-                                Country
-                            </label>
-                            <div className="flex items-center gap-2">
-                                {countryFlagSrc && (
-                                    <Image
-                                        alt={filters.country}
-                                        className="w-5 h-3.5 rounded-sm object-cover shadow shrink-0 text-transparent"
-                                        height={14}
-                                        src={countryFlagSrc}
-                                        width={20}
-                                    />
-                                )}
-                                <div className="relative flex-1">
-                                    <select
-                                        // eslint-disable-next-line max-len
-                                        className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
-                                        id="filter-country"
-                                        onChange={e => {
-                                            patch('country', e.target.value)
-                                        }}
-                                        value={filters.country}
+                    <div
+                        className="grid transition-[grid-template-rows] duration-300 ease-in-out sm:[grid-template-rows:1fr]"
+                        style={{ gridTemplateRows: filtersOpen ? '1fr' : '0fr' }}
+                    >
+                        <div className="overflow-hidden">
+                            {/* Primary filters */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                                {/* Year */}
+                                <div className="flex flex-col gap-1">
+                                    <label
+                                        className="text-xs text-gray-400 font-medium"
+                                        htmlFor="filter-year"
                                     >
-                                        <option value="">All countries</option>
-                                        {countries.map(c => (
-                                            <option
-                                                key={c}
-                                                value={c}
-                                            >
-                                                {c}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown />
+                                        Year
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            // eslint-disable-next-line max-len
+                                            className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                            id="filter-year"
+                                            onChange={e => {
+                                                patch('year', e.target.value)
+                                            }}
+                                            value={filters.year}
+                                        >
+                                            <option value="">All years</option>
+                                            {years.map(y => (
+                                                <option
+                                                    key={y}
+                                                    value={y}
+                                                >
+                                                    {y}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown />
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <ClearableInput
-                            id="filter-city"
-                            label="City"
-                            listId="city-list"
-                            onChange={v => {
-                                patch('city', v)
-                            }}
-                            options={cities}
-                            placeholder="e.g. Gothenburg"
-                            value={filters.city}
-                        />
+                                {/* Country */}
+                                <div className="flex flex-col gap-1">
+                                    <label
+                                        className="text-xs text-gray-400 font-medium"
+                                        htmlFor="filter-country"
+                                    >
+                                        Country
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        {countryFlagSrc && (
+                                            <Image
+                                                alt={filters.country}
+                                                className="w-5 h-3.5 rounded-sm object-cover shadow shrink-0 text-transparent"
+                                                height={14}
+                                                src={countryFlagSrc}
+                                                width={20}
+                                            />
+                                        )}
+                                        <div className="relative flex-1">
+                                            <select
+                                                // eslint-disable-next-line max-len
+                                                className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                                id="filter-country"
+                                                onChange={e => {
+                                                    patch('country', e.target.value)
+                                                }}
+                                                value={filters.country}
+                                            >
+                                                <option value="">All countries</option>
+                                                {countries.map(c => (
+                                                    <option
+                                                        key={c}
+                                                        value={c}
+                                                    >
+                                                        {c}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown />
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <ClearableInput
-                            id="filter-song"
-                            label="Song in setlist"
-                            listId="song-list"
-                            onChange={v => {
-                                patch('song', v)
-                            }}
-                            options={allSongs}
-                            placeholder="e.g. The Jester Race"
-                            value={filters.song}
-                        />
-                    </div>
-
-                    {/* Secondary filters */}
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 border-t border-gray-800/50">
-                        {CHECKBOX_FILTERS.map(({ key, label }) => (
-                            <label
-                                className="flex items-center gap-2 cursor-pointer group"
-                                key={key}
-                            >
-                                <input
-                                    checked={filters[key]}
-                                    className="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-[#D50209] cursor-pointer"
-                                    onChange={e => {
-                                        patch(key, e.target.checked)
+                                <ClearableInput
+                                    id="filter-city"
+                                    label="City"
+                                    listId="city-list"
+                                    onChange={v => {
+                                        patch('city', v)
                                     }}
-                                    type="checkbox"
+                                    options={cities}
+                                    placeholder="e.g. Gothenburg"
+                                    value={filters.city}
                                 />
-                                <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{label}</span>
-                            </label>
-                        ))}
 
-                        <div className="ml-auto flex items-center gap-2">
-                            <label
-                                className="text-xs text-gray-400"
-                                htmlFor="sort-select"
-                            >
-                                Sort
-                            </label>
-                            <div className="relative">
-                                <select
-                                    // eslint-disable-next-line max-len
-                                    className="appearance-none bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
-                                    id="sort-select"
-                                    onChange={e => {
-                                        patch('sort', e.target.value as SortOrder)
+                                <ClearableInput
+                                    id="filter-song"
+                                    label="Song in setlist"
+                                    listId="song-list"
+                                    onChange={v => {
+                                        patch('song', v)
                                     }}
-                                    value={filters.sort}
-                                >
-                                    <option value="date-asc">Date (oldest first)</option>
-                                    <option value="date-desc">Date (newest first)</option>
-                                </select>
-                                <ChevronDown />
+                                    options={allSongs}
+                                    placeholder="e.g. The Jester Race"
+                                    value={filters.song}
+                                />
+                            </div>
+
+                            {/* Secondary filters */}
+                            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 border-t border-gray-800/50">
+                                {CHECKBOX_FILTERS.map(({ key, label }) => (
+                                    <label
+                                        className="flex items-center gap-2 cursor-pointer group"
+                                        key={key}
+                                    >
+                                        <input
+                                            checked={filters[key]}
+                                            className="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-[#D50209] cursor-pointer"
+                                            onChange={e => {
+                                                patch(key, e.target.checked)
+                                            }}
+                                            type="checkbox"
+                                        />
+                                        <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{label}</span>
+                                    </label>
+                                ))}
+
+                                <div className="ml-auto flex items-center gap-2">
+                                    <label
+                                        className="text-xs text-gray-400"
+                                        htmlFor="sort-select"
+                                    >
+                                        Sort
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            // eslint-disable-next-line max-len
+                                            className="appearance-none bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                            id="sort-select"
+                                            onChange={e => {
+                                                patch('sort', e.target.value as SortOrder)
+                                            }}
+                                            value={filters.sort}
+                                        >
+                                            <option value="date-asc">Date (oldest first)</option>
+                                            <option value="date-desc">Date (newest first)</option>
+                                        </select>
+                                        <ChevronDown />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { memo, useEffect, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import { flagUrl } from 'lib/flags'
 import { formatDate, getYear } from 'lib/date'
@@ -149,7 +149,7 @@ function DefaultThumbnail() {
  * Lazily loads thumbnails when card becomes visible using Intersection Observer.
  * @returns JSX.Element
  */
-export default function ShowCard({
+const ShowCard = memo(function ShowCard({
     show,
 }: {
     /** Show data to display */
@@ -245,6 +245,7 @@ export default function ShowCard({
                         href={show.Link}
                         rel="noopener noreferrer"
                         target="_blank"
+                        aria-label={`Watch In Flames – ${show.City} ${show.Country} – ${formatDate(show.Date)}`}
                     >
                         <DefaultThumbnail />
                         {thumbnail && thumbStatus !== 'error' && (
@@ -390,4 +391,6 @@ export default function ShowCard({
             )}
         </article>
     )
-}
+})
+
+export default ShowCard
