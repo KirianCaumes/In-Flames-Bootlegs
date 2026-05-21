@@ -241,11 +241,11 @@ const ShowCard = memo(function ShowCard({
             <div className="h-36 overflow-hidden bg-gray-900 border-b border-gray-800 shrink-0">
                 {show.Link ? (
                     <a
+                        aria-label={`Watch In Flames – ${show.City} ${show.Country} – ${formatDate(show.Date)}`}
                         className="block h-full group relative"
                         href={show.Link}
                         rel="noopener noreferrer"
                         target="_blank"
-                        aria-label={`Watch In Flames – ${show.City} ${show.Country} – ${formatDate(show.Date)}`}
                     >
                         <DefaultThumbnail />
                         {thumbnail && thumbStatus !== 'error' && (
