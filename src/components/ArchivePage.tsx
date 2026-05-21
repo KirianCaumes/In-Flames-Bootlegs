@@ -1,10 +1,13 @@
 'use client'
 
 import { useDeferredValue, useMemo, useState } from 'react'
-import type { Show } from '@/lib/shows'
-import { flagUrl } from '@/lib/flags'
-import { getYear, parseDate } from '@/lib/date'
-import ShowCard from './ShowCard'
+import Image from 'next/image'
+import ShowCard from 'components/ShowCard'
+import { flagUrl } from 'lib/flags'
+import { getYear, parseDate } from 'lib/date'
+// eslint-disable-next-line no-restricted-imports
+import IconSvg from '../../public/favicon.svg'
+import type { Show } from 'lib/shows'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -16,13 +19,21 @@ type SortOrder = 'date-asc' | 'date-desc'
  * Controls which shows are displayed based on user selections.
  */
 interface Filters {
+    /** Year filter */
     year: string
+    /** Country filter */
     country: string
+    /** City filter */
     city: string
+    /** Song filter */
     song: string
+    /** Pro shot filter */
     proshot: boolean
+    /** Video filter */
     video: boolean
+    /** Full show filter */
     full: boolean
+    /** Sort order filter */
     sort: SortOrder
 }
 
@@ -38,7 +49,9 @@ const DEFAULT_FILTERS: Filters = {
 }
 
 const CHECKBOX_FILTERS: Array<{
+    /** Key for the filter */
     key: 'proshot' | 'video' | 'full'
+    /** Label for the filter */
     label: string
 }> = [
     { key: 'proshot', label: 'Pro Shot' },
@@ -51,6 +64,7 @@ const CHECKBOX_FILTERS: Array<{
 /**
  * Chevron down SVG icon used in select dropdowns.
  * Positioned absolutely within relative containers.
+ * @returns JSX element representing a chevron down icon
  */
 function ChevronDown() {
     return (
@@ -61,10 +75,10 @@ function ChevronDown() {
             viewBox="0 0 24 24"
         >
             <path
+                d="M19 9l-7 7-7-7"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M19 9l-7 7-7-7"
             />
         </svg>
     )
@@ -75,46 +89,57 @@ function ChevronDown() {
  * Provides a text input with datalist autocomplete and optional clear button.
  */
 interface ClearableInputProps {
-    id: string
-    label: string
-    placeholder: string
-    listId: string
-    options: string[]
-    value: string
-    onChange: (value: string) => void
+    /** Unique identifier for the input element */
+    readonly id: string
+    /** Label text for the input element */
+    readonly label: string
+    /** Placeholder text for the input element */
+    readonly placeholder: string
+    /** Identifier for the datalist element */
+    readonly listId: string
+    /** Options for the datalist element */
+    readonly options: Array<string>
+    /** Current value of the input element */
+    readonly value: string
+    /** Change handler for the input element */
+    readonly onChange: (value: string) => void
 }
 
 /**
  * Reusable text input component with autocomplete from a datalist and optional clear button.
- * @param props - Component props including id, label, placeholder, datalist options, and change handler
  * @returns JSX.Element
  */
 function ClearableInput({ id, label, placeholder, listId, options, value, onChange }: ClearableInputProps) {
     return (
         <div className="flex flex-col gap-1">
             <label
-                className="text-xs text-gray-500 font-medium"
+                className="text-xs text-gray-400 font-medium"
                 htmlFor={id}
             >
                 {label}
             </label>
             <div className="relative">
                 <input
-                    id={id}
-                    type="text"
-                    placeholder={placeholder}
-                    list={listId}
                     autoComplete="off"
+                    // eslint-disable-next-line max-len
+                    className="w-full bg-gray-800 border border-gray-700 text-gray-200 placeholder-gray-600 rounded-xl px-3 py-2.5 text-sm pr-9 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all [&::-webkit-calendar-picker-indicator]:!hidden"
+                    id={id}
+                    list={listId}
+                    onChange={e => {
+                        onChange(e.target.value)
+                    }}
+                    placeholder={placeholder}
+                    type="text"
                     value={value}
-                    onChange={e => onChange(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 text-gray-200 placeholder-gray-600 rounded-xl px-3 py-2.5 text-sm pr-9 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
                 />
                 {value ? (
                     <button
-                        type="button"
-                        onClick={() => onChange('')}
                         aria-label={`Clear ${label.toLowerCase()}`}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-brand-500"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-500"
+                        onClick={() => {
+                            onChange('')
+                        }}
+                        type="button"
                     >
                         <svg
                             className="w-4 h-4"
@@ -123,15 +148,15 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
                             viewBox="0 0 24 24"
                         >
                             <path
+                                d="M6 18L18 6M6 6l12 12"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
                             />
                         </svg>
                     </button>
                 ) : (
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                         <svg
                             className="w-4 h-4"
                             fill="none"
@@ -139,10 +164,10 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
                             viewBox="0 0 24 24"
                         >
                             <path
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                             />
                         </svg>
                     </span>
@@ -166,14 +191,23 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
  * Main archive page component with filtering and sorting capabilities.
  * Displays all In Flames bootleg shows with interactive filters.
  * Uses deferred values for smooth UI during filtering.
- * @param shows - Array of all available shows to display and filter
  * @returns JSX.Element
  */
-export default function ArchivePage({ shows }: { shows: Show[] }) {
+export default function ArchivePage({
+    shows,
+}: {
+    /** Shows to display and filter */
+    readonly shows: Array<Show>
+}) {
     const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
     const deferredFilters = useDeferredValue(filters)
     const isStale = filters !== deferredFilters
 
+    /**
+     * Helper function to update a specific filter value while keeping the rest unchanged.
+     * @param key - The key of the filter to update
+     * @param value - The new value for the specified filter
+     */
     function patch<K extends keyof Filters>(key: K, value: Filters[K]) {
         setFilters(prev => ({ ...prev, [key]: value }))
     }
@@ -185,10 +219,16 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
     const allSongs = useMemo(() => {
         const seen = new Map<string, string>()
         shows
-            .flatMap(s => s.Setlist.split('\n').map(l => l.trim()))
+            .flatMap(s =>
+                s.Setlist.split('\n')
+                    .map(l => l.trim())
+                    .filter(Boolean),
+            )
             .forEach(s => {
                 const key = s.toLowerCase()
-                if (!seen.has(key)) seen.set(key, s)
+                if (!seen.has(key)) {
+                    seen.set(key, s)
+                }
             })
         return [...seen.values()].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
     }, [shows])
@@ -196,13 +236,27 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
     // ── Filtered & sorted results ───────────────────────────────────────────
     const filtered = useMemo(() => {
         const result = shows.filter(s => {
-            if (deferredFilters.year && getYear(s.Date) !== deferredFilters.year) return false
-            if (deferredFilters.country && s.Country.trim() !== deferredFilters.country) return false
-            if (deferredFilters.city && !s.City.toLowerCase().includes(deferredFilters.city.toLowerCase())) return false
-            if (deferredFilters.song && !s.Setlist.toLowerCase().includes(deferredFilters.song.toLowerCase())) return false
-            if (deferredFilters.proshot && s.ProShot !== 'Yes') return false
-            if (deferredFilters.video && s.Video !== 'Yes') return false
-            if (deferredFilters.full && s.Full !== 'Yes') return false
+            if (deferredFilters.year && getYear(s.Date) !== deferredFilters.year) {
+                return false
+            }
+            if (deferredFilters.country && s.Country.trim() !== deferredFilters.country) {
+                return false
+            }
+            if (deferredFilters.city && !s.City.toLowerCase().includes(deferredFilters.city.toLowerCase())) {
+                return false
+            }
+            if (deferredFilters.song && !s.Setlist.toLowerCase().includes(deferredFilters.song.toLowerCase())) {
+                return false
+            }
+            if (deferredFilters.proshot && s.ProShot !== 'Yes') {
+                return false
+            }
+            if (deferredFilters.video && s.Video !== 'Yes') {
+                return false
+            }
+            if (deferredFilters.full && s.Full !== 'Yes') {
+                return false
+            }
             return true
         })
         result.sort((a, b) => {
@@ -221,20 +275,20 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
             <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <img
-                            src="/favicon.svg"
+                        <Image
                             alt="Bootlegs Archive"
-                            className="w-14 h-14 rounded-lg object-cover border border-gray-700 shrink-0"
+                            className="w-14 h-14 object-cover shrink-0"
+                            src={IconSvg as string}
                         />
                         <div className="w-px h-8 bg-gradient-to-b from-brand-500 to-brand-600 hidden sm:block" />
                         <div>
                             <h1 className="text-xl sm:text-2xl font-bold tracking-widest uppercase text-brand-500">In Flames</h1>
-                            <p className="text-gray-500 text-xs sm:text-sm tracking-wide">Bootlegs &amp; Live Shows Archive</p>
+                            <p className="text-gray-400 text-xs sm:text-sm tracking-wide">Bootlegs &amp; Live Shows Archive</p>
                         </div>
                     </div>
                     <div className="text-right shrink-0">
                         <div className="text-2xl font-bold text-brand-500">{shows.length}</div>
-                        <div className="text-xs text-gray-500">shows archived</div>
+                        <div className="text-xs text-gray-400">shows archived</div>
                     </div>
                 </div>
             </header>
@@ -244,10 +298,13 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                 {/* Filters */}
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Filters</h2>
+                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</h2>
                         <button
-                            onClick={() => setFilters(DEFAULT_FILTERS)}
                             className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10"
+                            onClick={() => {
+                                setFilters(DEFAULT_FILTERS)
+                            }}
+                            type="button"
                         >
                             Reset all
                         </button>
@@ -258,17 +315,20 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                         {/* Year */}
                         <div className="flex flex-col gap-1">
                             <label
-                                className="text-xs text-gray-500 font-medium"
+                                className="text-xs text-gray-400 font-medium"
                                 htmlFor="filter-year"
                             >
                                 Year
                             </label>
                             <div className="relative">
                                 <select
-                                    id="filter-year"
-                                    value={filters.year}
-                                    onChange={e => patch('year', e.target.value)}
+                                    // eslint-disable-next-line max-len
                                     className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                    id="filter-year"
+                                    onChange={e => {
+                                        patch('year', e.target.value)
+                                    }}
+                                    value={filters.year}
                                 >
                                     <option value="">All years</option>
                                     {years.map(y => (
@@ -287,25 +347,30 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                         {/* Country */}
                         <div className="flex flex-col gap-1">
                             <label
-                                className="text-xs text-gray-500 font-medium"
+                                className="text-xs text-gray-400 font-medium"
                                 htmlFor="filter-country"
                             >
                                 Country
                             </label>
                             <div className="flex items-center gap-2">
                                 {countryFlagSrc && (
-                                    <img
-                                        src={countryFlagSrc}
+                                    <Image
                                         alt={filters.country}
                                         className="w-5 h-3.5 rounded-sm object-cover shadow shrink-0 text-transparent"
+                                        height={14}
+                                        src={countryFlagSrc}
+                                        width={20}
                                     />
                                 )}
                                 <div className="relative flex-1">
                                     <select
-                                        id="filter-country"
-                                        value={filters.country}
-                                        onChange={e => patch('country', e.target.value)}
+                                        // eslint-disable-next-line max-len
                                         className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                        id="filter-country"
+                                        onChange={e => {
+                                            patch('country', e.target.value)
+                                        }}
+                                        value={filters.country}
                                     >
                                         <option value="">All countries</option>
                                         {countries.map(c => (
@@ -325,21 +390,25 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                         <ClearableInput
                             id="filter-city"
                             label="City"
-                            placeholder="e.g. Gothenburg"
                             listId="city-list"
+                            onChange={v => {
+                                patch('city', v)
+                            }}
                             options={cities}
+                            placeholder="e.g. Gothenburg"
                             value={filters.city}
-                            onChange={v => patch('city', v)}
                         />
 
                         <ClearableInput
                             id="filter-song"
                             label="Song in setlist"
-                            placeholder="e.g. The Jester Race"
                             listId="song-list"
+                            onChange={v => {
+                                patch('song', v)
+                            }}
                             options={allSongs}
+                            placeholder="e.g. The Jester Race"
                             value={filters.song}
-                            onChange={v => patch('song', v)}
                         />
                     </div>
 
@@ -347,14 +416,16 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 border-t border-gray-800/50">
                         {CHECKBOX_FILTERS.map(({ key, label }) => (
                             <label
-                                key={key}
                                 className="flex items-center gap-2 cursor-pointer group"
+                                key={key}
                             >
                                 <input
-                                    type="checkbox"
                                     checked={filters[key]}
-                                    onChange={e => patch(key, e.target.checked)}
                                     className="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-[#D50209] cursor-pointer"
+                                    onChange={e => {
+                                        patch(key, e.target.checked)
+                                    }}
+                                    type="checkbox"
                                 />
                                 <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{label}</span>
                             </label>
@@ -362,17 +433,20 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
 
                         <div className="ml-auto flex items-center gap-2">
                             <label
-                                className="text-xs text-gray-500"
+                                className="text-xs text-gray-400"
                                 htmlFor="sort-select"
                             >
                                 Sort
                             </label>
                             <div className="relative">
                                 <select
-                                    id="sort-select"
-                                    value={filters.sort}
-                                    onChange={e => patch('sort', e.target.value as SortOrder)}
+                                    // eslint-disable-next-line max-len
                                     className="appearance-none bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                    id="sort-select"
+                                    onChange={e => {
+                                        patch('sort', e.target.value as SortOrder)
+                                    }}
+                                    value={filters.sort}
                                 >
                                     <option value="date-asc">Date (oldest first)</option>
                                     <option value="date-desc">Date (newest first)</option>
@@ -386,7 +460,7 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                 {/* Results bar */}
                 <div className="flex items-center justify-between mb-4 min-h-[1.5rem]">
                     {filtered.length > 0 && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-400">
                             {filtered.length === shows.length ? `${shows.length} shows` : `${filtered.length} of ${shows.length} shows`}
                         </p>
                     )}
@@ -402,16 +476,19 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                             viewBox="0 0 24 24"
                         >
                             <path
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={1.5}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                             />
                         </svg>
-                        <p className="text-gray-500 font-medium">No shows match your filters</p>
+                        <p className="text-gray-400 font-medium">No shows match your filters</p>
                         <button
-                            onClick={() => setFilters(DEFAULT_FILTERS)}
                             className="text-sm text-brand-500 hover:text-brand-400 underline underline-offset-2 transition-colors"
+                            onClick={() => {
+                                setFilters(DEFAULT_FILTERS)
+                            }}
+                            type="button"
                         >
                             Reset filters
                         </button>
@@ -421,10 +498,12 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                 {/* Grid */}
                 {filtered.length > 0 && (
                     <div
+                        // eslint-disable-next-line max-len
                         className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-150 ${isStale ? 'opacity-50' : 'opacity-100'}`}
                     >
                         {filtered.map((show, i) => (
                             <ShowCard
+                                // eslint-disable-next-line react/no-array-index-key
                                 key={`${show.Date}-${show.City}-${i}`}
                                 show={show}
                             />
@@ -435,11 +514,12 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
 
             {/* ── Footer ─────────────────────────────────────────────────────────── */}
             <footer className="border-t border-gray-800/50 mt-12 py-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center gap-5">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center gap-4">
                     <div className="flex flex-wrap justify-center gap-3">
                         <a
-                            href={`mailto:jesterscollection@gmail.com?subject=${encodeURIComponent('Dead link — In Flames Archive')}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-gray-500 border border-gray-800 hover:border-brand-500/40 hover:text-brand-500 transition-colors"
+                            // eslint-disable-next-line max-len
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-gray-400 border border-gray-800 hover:border-brand-500/40 hover:text-brand-500 transition-colors"
+                            href={`mailto:ajesterscollection@gmail.com?subject=${encodeURIComponent('Dead link — In Flames Archive')}`}
                         >
                             <svg
                                 className="w-4 h-4"
@@ -448,17 +528,19 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                                 viewBox="0 0 24 24"
                             >
                                 <path
+                                    // eslint-disable-next-line max-len
+                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={1.5}
-                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
                                 />
                             </svg>
                             Signal a dead link
                         </a>
                         <a
-                            href={`mailto:jesterscollection@gmail.com?subject=${encodeURIComponent('New show suggestion — In Flames Archive')}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-gray-500 border border-gray-800 hover:border-brand-500/40 hover:text-brand-500 transition-colors"
+                            // eslint-disable-next-line max-len
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-gray-400 border border-gray-800 hover:border-brand-500/40 hover:text-brand-500 transition-colors"
+                            href={`mailto:ajesterscollection@gmail.com?subject=${encodeURIComponent('New show suggestion — In Flames Archive')}`}
                         >
                             <svg
                                 className="w-4 h-4"
@@ -467,21 +549,26 @@ export default function ArchivePage({ shows }: { shows: Show[] }) {
                                 viewBox="0 0 24 24"
                             >
                                 <path
+                                    d="M12 4v16m8-8H4"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={1.5}
-                                    d="M12 4v16m8-8H4"
                                 />
                             </svg>
                             Suggest a new show
                         </a>
                     </div>
-                    <p className="text-gray-700 text-xs">In Flames Bootlegs Archive &mdash; Community recordings</p>
-                    <p className="text-gray-700 text-xs max-w-xl text-center">
-                        This is a non-commercial fan archive. All recordings, artwork and trademarks belong to their respective owners. In
-                        Flames is a trademark. This site is not affiliated with or endorsed by In Flames.
+                    <p className="text-gray-500 text-xs">
+                        Non-commercial fan archive. All recordings and trademarks belong to their respective owners.
                     </p>
-                    <p className="text-gray-700 text-xs">Generated with AI assistance</p>
+                    <a
+                        className="text-xs text-brand-400 hover:text-brand-400 transition-colors"
+                        href="https://jesterscollection.kiriancaumes.fr"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        jesterscollection.kiriancaumes.fr
+                    </a>
                 </div>
             </footer>
         </>

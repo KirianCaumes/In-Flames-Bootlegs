@@ -33,24 +33,29 @@ export interface Show {
  * @param raw - Raw CSV text data
  * @returns Array of parsed Show objects
  */
-function parseCSV(raw: string): Show[] {
+function parseCSV(raw: string): Array<Show> {
     // Normalize line endings to \n for consistent parsing
     const text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-    const rows: string[][] = []
+    const rows: Array<Array<string>> = []
     let i = 0
     const len = text.length
 
     while (i < len) {
-        const row: string[] = []
+        const row: Array<string> = []
 
         while (i < len && !(text[i] === '\n' && row.length > 0)) {
-            if (text[i] === ',') i++
-            else if (row.length === 0 && text[i] === '\n') break
+            if (text[i] === ',') {
+                i++
+            } else if (row.length === 0 && text[i] === '\n') {
+                break
+            }
 
-            if (i >= len) break
+            if (i >= len) {
+                break
+            }
 
             if (text[i] === '"') {
-                i++ // skip opening quote
+                i++ // Skip opening quote
                 let field = ''
                 while (i < len) {
                     if (text[i] === '"') {
@@ -75,11 +80,17 @@ function parseCSV(raw: string): Show[] {
             }
         }
 
-        if (i < len && text[i] === '\n') i++
-        if (row.length > 0) rows.push(row)
+        if (i < len && text[i] === '\n') {
+            i++
+        }
+        if (row.length > 0) {
+            rows.push(row)
+        }
     }
 
-    if (rows.length < 2) return []
+    if (rows.length < 2) {
+        return []
+    }
 
     const headers = rows[0].map(h => h.trim())
     return rows
@@ -91,18 +102,21 @@ function parseCSV(raw: string): Show[] {
             })
             return obj as unknown as Show
         })
-        .filter(s => s.Title)
+        .filter(s => s.Title && !s.Title.startsWith('💀')) // Filter out rows without a title or marked as deleted
 }
 /**
  * Fetches the concert shows from the Google Sheet and parses the CSV data.
  * Results are cached and revalidated every hour (3600 seconds).
  * @throws {Error} If the fetch fails or returns a non-OK status
  * @returns Promise resolving to an array of all concert shows
- */ export async function fetchShows(): Promise<Show[]> {
+ */ export async function fetchShows(): Promise<Array<Show>> {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const res = await fetch(process.env.GOOGLE_SHEET_URL!, {
-        next: { revalidate: 3600 }, // revalidate every hour
+        next: { revalidate: 3600 }, // Revalidate every hour
     })
-    if (!res.ok) throw new Error(`Failed to fetch archive: HTTP ${res.status}`)
+    if (!res.ok) {
+        throw new Error(`Failed to fetch archive: HTTP ${res.status}`)
+    }
     const text = await res.text()
     return parseCSV(text)
 }

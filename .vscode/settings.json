@@ -1,6 +1,7 @@
 {
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.fixAll.stylelint": "explicit"
@@ -39,5 +40,14 @@
   "prettier.requireConfig": true,
   "prettier.useEditorConfig": false,
   "prettier.ignorePath": ".prettierignore",
-  "prettier.configPath": ".prettierrc.js"
+  "prettier.configPath": ".prettierrc.cjs",
+  "eslint.workingDirectories": ["./"],
+  "eslint.execArgv": ["--max-old-space-size=8192"],
+  "eslint.run": "onSave",
+  "eslint.options": {
+    "cache": true,
+    "cacheLocation": ".eslintcache"
+  },
+  "eslint.runtime": "node",
+  "eslint.nodeEnv": null
 }

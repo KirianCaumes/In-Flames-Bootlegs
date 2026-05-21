@@ -11,9 +11,13 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
  * @returns Date object or null if parsing fails
  */
 function parseDateParts(dateStr: string): Date | null {
-    if (!dateStr) return null
+    if (!dateStr) {
+        return null
+    }
     const [d, m, y] = dateStr.split('/')
-    if (!m || !d || !y) return null
+    if (!m || !d || !y) {
+        return null
+    }
     const date = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10))
     return isNaN(date.getTime()) ? null : date
 }

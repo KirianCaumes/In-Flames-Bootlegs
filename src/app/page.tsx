@@ -1,5 +1,5 @@
-import { fetchShows } from '@/lib/shows'
-import ArchivePage from '@/components/ArchivePage'
+import { fetchShows } from 'lib/shows'
+import ArchivePage from 'components/ArchivePage'
 
 /**
  * Root page of the In-Flames bootleg archive.
