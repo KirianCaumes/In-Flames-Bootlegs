@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { headers } from 'next/headers'
 import { fetchShows } from 'lib/shows'
 import ArchivePage from 'components/ArchivePage'
@@ -13,9 +14,11 @@ export default async function Page() {
     const device = /mobile|android|iphone|ipad|ipod/i.test(ua) ? 'mobile' : 'desktop'
 
     return (
-        <ArchivePage
-            device={device}
-            shows={shows}
-        />
+        <Suspense>
+            <ArchivePage
+                device={device}
+                shows={shows}
+            />
+        </Suspense>
     )
 }

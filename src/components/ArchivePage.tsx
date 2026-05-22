@@ -2,12 +2,69 @@
 
 import { useDeferredValue, useMemo, useState } from 'react'
 import Image from 'next/image'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import ShowCard from 'components/ShowCard'
-import ArchiveFilters, { type Filters, DEFAULT_FILTERS } from 'components/ArchiveFilters'
+import ArchiveFilters, { type Filters, type SortOrder, DEFAULT_FILTERS } from 'components/ArchiveFilters'
 import { getYear, parseDate } from 'lib/date'
 // eslint-disable-next-line no-restricted-imports
 import IconSvg from '../../public/favicon.svg'
 import type { Show } from 'lib/shows'
+
+// ── URL ↔ Filters helpers ────────────────────────────────────────────────────
+
+/**
+ * Parses URL search parameters into a Filters object.
+ * @returns Filters object representing the current filter state
+ */
+function filtersFromParams(params: {
+    /** URLSearchParams-like object */
+    get: (key: string) => string | null
+}): Filters {
+    return {
+        year: params.get('year') ?? '',
+        country: params.get('country') ?? '',
+        city: params.get('city') ?? '',
+        song: params.get('song') ?? '',
+        proshot: params.get('proshot') === '1',
+        video: params.get('video') === '1',
+        full: params.get('full') === '1',
+        sort: (params.get('sort') as SortOrder | null) ?? 'date-asc',
+    }
+}
+
+/**
+ * Converts a Filters object into a URL search parameters string.
+ * @param filters - Filters object to convert to URL search parameters
+ * @returns URL search parameters string representing the current filter state
+ */
+function paramsFromFilters(filters: Filters): string {
+    const params = new URLSearchParams()
+    if (filters.year) {
+        params.set('year', filters.year)
+    }
+    if (filters.country) {
+        params.set('country', filters.country)
+    }
+    if (filters.city) {
+        params.set('city', filters.city)
+    }
+    if (filters.song) {
+        params.set('song', filters.song)
+    }
+    if (filters.proshot) {
+        params.set('proshot', '1')
+    }
+    if (filters.video) {
+        params.set('video', '1')
+    }
+    if (filters.full) {
+        params.set('full', '1')
+    }
+    if (filters.sort !== 'date-asc') {
+        params.set('sort', filters.sort)
+    }
+    return params.toString()
+}
 
 // ── ArchivePage ───────────────────────────────────────────────────────────────
 
@@ -26,9 +83,23 @@ export default function ArchivePage({
     /** Detected device type for responsive behavior */
     readonly device: 'mobile' | 'desktop'
 }) {
-    const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const pathname = usePathname()
+    const [filters, setFilters] = useState<Filters>(() => filtersFromParams(searchParams))
     const deferredFilters = useDeferredValue(filters)
     const isStale = filters !== deferredFilters
+
+    /**
+     * Updates filters state and syncs the new filter values to the URL.
+     * @param next - New filter values to apply
+     */
+    function handleFiltersChange(next: Filters) {
+        setFilters(next)
+        const qs = paramsFromFilters(next)
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }
+
     const filtered = useMemo(() => {
         const result = shows.filter(s => {
             if (deferredFilters.year && getYear(s.Date) !== deferredFilters.year) {
@@ -93,7 +164,7 @@ export default function ArchivePage({
                 <ArchiveFilters
                     defaultOpen={device === 'desktop'}
                     filters={filters}
-                    onFiltersChange={setFilters}
+                    onFiltersChange={handleFiltersChange}
                     shows={shows}
                 />
 
@@ -126,7 +197,7 @@ export default function ArchivePage({
                         <button
                             className="text-sm text-brand-500 hover:text-brand-400 underline underline-offset-2 transition-colors"
                             onClick={() => {
-                                setFilters(DEFAULT_FILTERS)
+                                handleFiltersChange(DEFAULT_FILTERS)
                             }}
                             type="button"
                         >

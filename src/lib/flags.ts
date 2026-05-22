@@ -3,11 +3,10 @@
  * Used by the flag CDN to fetch and display country flag SVGs.
  */
 const COUNTRY_FLAGS: Record<string, string> = {
-    'United States': 'us',
+    USA: 'us',
     Germany: 'de',
     Sweden: 'se',
     Canada: 'ca',
-    'United Kingdom': 'gb',
     England: 'gb',
     Finland: 'fi',
     France: 'fr',
@@ -23,7 +22,6 @@ const COUNTRY_FLAGS: Record<string, string> = {
     Mexico: 'mx',
     Czechia: 'cz',
     Russia: 'ru',
-    'Russian Federation': 'ru',
     Denmark: 'dk',
     Poland: 'pl',
     Brazil: 'br',

@@ -51,10 +51,18 @@ const CHECKBOX_FILTERS: Array<{
     key: 'proshot' | 'video' | 'full'
     /** Label for the filter */
     label: string
+    /** Description for the filter */
+    tooltip?: string
 }> = [
-    { key: 'proshot', label: 'Pro Shot' },
-    { key: 'video', label: 'Has Video' },
-    { key: 'full', label: 'Full Show' },
+    {
+        key: 'proshot',
+        label: 'Pro Shot',
+        tooltip:
+            // eslint-disable-next-line max-len
+            'Shows with professionally recorded video footage available.\nNote: for some old shows it is difficult to classify the quality of the footage as pro shot or amateur.',
+    },
+    { key: 'video', label: 'Has Video', tooltip: 'Shows with any kind of video footage available, including amateur recordings.' },
+    { key: 'full', label: 'Full Show', tooltip: 'Shows with a complete setlist recorded.' },
 ]
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
@@ -395,10 +403,11 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
 
                     {/* Secondary filters */}
                     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 border-t border-gray-800/50">
-                        {CHECKBOX_FILTERS.map(({ key, label }) => (
+                        {CHECKBOX_FILTERS.map(({ key, label, tooltip }) => (
                             <label
                                 className="flex items-center gap-2 cursor-pointer group"
                                 key={key}
+                                title={tooltip}
                             >
                                 <input
                                     checked={filters[key]}
