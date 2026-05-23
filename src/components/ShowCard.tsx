@@ -4,6 +4,7 @@ import { memo, useEffect, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import { flagUrl } from 'lib/flags'
 import { formatDate, getYear } from 'lib/date'
+import { trackEvent } from 'lib/ga'
 import type { Show } from 'lib/shows'
 
 /**
@@ -161,6 +162,7 @@ const ShowCard = memo(function ShowCard({
     const [thumbnail, setThumbnail] = useState<string | null>(null)
 
     const year = getYear(show.Date)
+    const date = formatDate(show.Date)
     const songs = show.Setlist.split('\n')
         .map(s => s.trim())
         .filter(Boolean)
@@ -215,6 +217,8 @@ const ShowCard = memo(function ShowCard({
         icon: ReactNode
         /** Label for the link */
         label: string
+        /** Optional click handler */
+        onClick?: () => void
     }> = []
     if (show.Link) {
         links.push({
@@ -222,6 +226,9 @@ const ShowCard = memo(function ShowCard({
             cls: 'text-red-400 hover:text-red-300',
             icon: <WatchIcon />,
             label: 'Watch',
+            onClick: () => {
+                trackEvent('bootleg_click', { link_url: show.Link, source: 'footer', title: `${show.City} ${show.Country} ${date}` })
+            },
         })
     }
     if (show['Setlist.fm']) {
@@ -241,9 +248,16 @@ const ShowCard = memo(function ShowCard({
             <div className="h-36 overflow-hidden bg-gray-900 border-b border-gray-800 shrink-0">
                 {show.Link ? (
                     <a
-                        aria-label={`Watch In Flames – ${show.City} ${show.Country} – ${formatDate(show.Date)}`}
+                        aria-label={`Watch In Flames – ${show.City} ${show.Country} – ${date}`}
                         className="block h-full group relative"
                         href={show.Link}
+                        onClick={() => {
+                            trackEvent('bootleg_click', {
+                                link_url: show.Link,
+                                source: 'thumbnail',
+                                title: `${show.City} ${show.Country} ${date}`,
+                            })
+                        }}
                         rel="noopener noreferrer"
                         target="_blank"
                     >
@@ -251,7 +265,7 @@ const ShowCard = memo(function ShowCard({
                         {thumbnail && thumbStatus !== 'error' && (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                                alt={`In Flames – ${show.City} ${show.Country} – ${formatDate(show.Date)}`}
+                                alt={`In Flames – ${show.City} ${show.Country} – ${date}`}
                                 // eslint-disable-next-line max-len
                                 className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300 text-transparent${thumbStatus === 'resolved' ? '' : ' opacity-0'}`}
                                 loading="lazy"
@@ -302,7 +316,7 @@ const ShowCard = memo(function ShowCard({
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-xs text-gray-400">{show.Country || 'Unknown'}</span>
                         <span className="text-gray-500 text-xs">·</span>
-                        <span className="text-xs text-gray-400">{formatDate(show.Date)}</span>
+                        <span className="text-xs text-gray-400">{date}</span>
                     </div>
                 </div>
 
@@ -375,11 +389,12 @@ const ShowCard = memo(function ShowCard({
             {/* Links footer */}
             {links.length > 0 && (
                 <div className="px-4 py-3 border-t border-gray-800/50 bg-gray-950/40 flex items-center gap-4 flex-wrap">
-                    {links.map(({ href, cls, icon, label }) => (
+                    {links.map(({ href, cls, icon, label, onClick }) => (
                         <a
                             className={`inline-flex items-center gap-1.5 text-xs font-medium transition-colors ${cls}`}
                             href={href}
                             key={label}
+                            onClick={onClick}
                             rel="noopener noreferrer"
                             target="_blank"
                         >

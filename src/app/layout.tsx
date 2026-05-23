@@ -1,4 +1,5 @@
 import { Inter } from 'next/font/google'
+import GdprBanner from 'components/GdprBanner'
 import type { Metadata } from 'next'
 // eslint-disable-next-line no-restricted-imports
 import './globals.css'
@@ -53,7 +54,10 @@ export default function RootLayout({
             lang="en"
             suppressHydrationWarning
         >
-            <body className={`${inter.className} bg-gray-950 text-gray-100 min-h-screen`}>{children}</body>
+            <body className={`${inter.className} bg-gray-950 text-gray-100 min-h-screen`}>
+                {children}
+                <GdprBanner />
+            </body>
         </html>
     )
 }
