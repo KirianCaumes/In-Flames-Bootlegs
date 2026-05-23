@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     metadataBase: new URL('https://in-flames-bootlegs.kiriancaumes.fr'),
     description:
         // eslint-disable-next-line max-len
-        'The most complete community archive of In Flames bootlegs and live recordings. Filter and discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
+        'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
     keywords: ['In Flames', 'bootleg', 'live show', 'concert', 'recording', 'archive', 'setlist', 'live recording'],
     authors: [{ name: "A Jester's Collection" }],
     creator: "A Jester's Collection",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
         title: 'In Flames - Bootlegs & Live Shows Archive',
         description:
             // eslint-disable-next-line max-len
-            'The most complete community archive of In Flames bootlegs and live recordings. Filter and discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
+            'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
         images: [{ url: '/favicon.png', width: 313, height: 313, alt: 'In Flames' }],
     },
     twitter: {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
         title: 'In Flames - Bootlegs & Live Shows Archive',
         description:
             // eslint-disable-next-line max-len
-            'The most complete community archive of In Flames bootlegs and live recordings. Filter and discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
+            'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
         images: ['/favicon.png'],
     },
     icons: {
