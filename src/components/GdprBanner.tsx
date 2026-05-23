@@ -52,7 +52,7 @@ function notifyConsentChange(): void {
  * @returns null
  */
 function getConsentServerSnapshot() {
-    return null
+    return true
 }
 
 /**
