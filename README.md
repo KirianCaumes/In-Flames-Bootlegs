@@ -12,15 +12,15 @@ Check it out [here](<https://in-flames-bootlegs.kiriancaumes.fr/>) 👈
 
 - [Next.js 16](https://nextjs.org/) (App Router, React Server Components)
 - [React 19](https://react.dev/)
-- [Tailwind CSS 3](https://tailwindcss.com/)
+- [Tailwind CSS 4](https://tailwindcss.com/)
 - TypeScript 5
 - Data source: Google Sheets (published as CSV)
 
 ## Prerequisites
 
 - Node.js 24.x
-- A Google Sheet published as CSV (see [Data Source](#data-source))
-- *(Optional)* A YouTube Data API v3 key for playlist thumbnails
+- A Google Sheet with all data (see [Data Source](#data-source))
+- A Google Sheet/YouTube Data API v3 key
 
 ## Getting Started
 
@@ -38,7 +38,7 @@ Create a `.env.local` file at the root of the project:
 # Required — URL of the Google Sheet exported as CSV
 GOOGLE_SHEET_URL=https://sheets.googleapis.com/v4/spreadsheets/<id>/values/<range>
 
-# Required — API key (for playlist thumbnail resolution and sheet)
+# Required — API key (for playlist thumbnail and sheet)
 GOOGLE_API_KEY=your_api_key_here
 ```
 
@@ -67,8 +67,6 @@ The app reads from a Google Sheet that must have the following columns (in order
 | `Link` | Primary media link |
 | `Setlist.fm` | Link to the Setlist.fm page |
 | `Comment` | Additional notes |
-
-To publish the sheet as CSV: **File → Share → Publish to web → CSV format**.
 
 ## Docker
 
