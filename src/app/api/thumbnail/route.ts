@@ -103,7 +103,7 @@ async function resolveThumbnail(url: string): Promise<string | null> {
             }
             const listId = parsed.searchParams.get('list')
             if (listId) {
-                const apiKey = process.env.YOUTUBE_API_KEY
+                const apiKey = process.env.GOOGLE_API_KEY
                 if (!apiKey) {
                     return null
                 }

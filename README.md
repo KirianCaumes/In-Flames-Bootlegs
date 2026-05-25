@@ -36,10 +36,10 @@ Create a `.env.local` file at the root of the project:
 
 ```env
 # Required — URL of the Google Sheet exported as CSV
-GOOGLE_SHEET_URL=https://docs.google.com/spreadsheets/d/<sheet-id>/export?format=csv
+GOOGLE_SHEET_URL=https://sheets.googleapis.com/v4/spreadsheets/<id>/values/<range>
 
-# Optional — YouTube Data API v3 key (for playlist thumbnail resolution)
-YOUTUBE_API_KEY=your_api_key_here
+# Required — API key (for playlist thumbnail resolution and sheet)
+GOOGLE_API_KEY=your_api_key_here
 ```
 
 ### 4. Run the development server
@@ -81,7 +81,7 @@ docker build -t in-flames-bootlegs .
 # Run the container (pass environment variables at runtime)
 docker run -p 3000:3000 \
   -e GOOGLE_SHEET_URL="<your-sheet-url>" \
-  -e YOUTUBE_API_KEY="<your-api-key>" \
+  -e GOOGLE_API_KEY="<your-api-key>" \
   in-flames-bootlegs
 ```
 

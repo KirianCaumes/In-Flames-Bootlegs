@@ -28,67 +28,17 @@ export interface Show {
 }
 
 /**
- * Parses CSV data into an array of Show objects.
- * Handles quoted fields and properly escaped quotes within fields.
- * @param raw - Raw CSV text data
+ * Parses a Google Sheets API v4 JSON response into an array of Show objects.
+ * @param raw - Raw JSON text from the Sheets API
  * @returns Array of parsed Show objects
  */
-function parseCSV(raw: string): Array<Show> {
-    // Normalize line endings to \n for consistent parsing
-    const text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-    const rows: Array<Array<string>> = []
-    let i = 0
-    const len = text.length
-
-    while (i < len) {
-        const row: Array<string> = []
-
-        while (i < len && !(text[i] === '\n' && row.length > 0)) {
-            if (text[i] === ',') {
-                i++
-            } else if (row.length === 0 && text[i] === '\n') {
-                break
-            }
-
-            if (i >= len) {
-                break
-            }
-
-            if (text[i] === '"') {
-                i++ // Skip opening quote
-                let field = ''
-                while (i < len) {
-                    if (text[i] === '"') {
-                        if (text[i + 1] === '"') {
-                            field += '"'
-                            i += 2
-                        } else {
-                            i++
-                            break
-                        }
-                    } else {
-                        field += text[i++]
-                    }
-                }
-                row.push(field)
-            } else {
-                let field = ''
-                while (i < len && text[i] !== ',' && text[i] !== '\n') {
-                    field += text[i++]
-                }
-                row.push(field.trim())
-            }
-        }
-
-        if (i < len && text[i] === '\n') {
-            i++
-        }
-        if (row.length > 0) {
-            rows.push(row)
-        }
+function parseSheetJSON(raw: string): Array<Show> {
+    const data = JSON.parse(raw) as {
+        /** Array of rows from the Google Sheet, where each row is an array of cell values */
+        values?: Array<Array<string>>
     }
-
-    if (rows.length < 2) {
+    const rows = data.values
+    if (!rows || rows.length < 2) {
         return []
     }
 
@@ -109,14 +59,15 @@ function parseCSV(raw: string): Array<Show> {
  * Results are cached and revalidated every hour (3600 seconds).
  * @throws {Error} If the fetch fails or returns a non-OK status
  * @returns Promise resolving to an array of all concert shows
- */ export async function fetchShows(): Promise<Array<Show>> {
+ */
+export async function fetchShows(): Promise<Array<Show>> {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const res = await fetch(process.env.GOOGLE_SHEET_URL!, {
+    const res = await fetch(`${process.env.GOOGLE_SHEET_URL!}?key=${process.env.GOOGLE_API_KEY!}`, {
         next: { revalidate: 3600 }, // Revalidate every hour
     })
     if (!res.ok) {
         throw new Error(`Failed to fetch archive: HTTP ${res.status}`)
     }
     const text = await res.text()
-    return parseCSV(text)
+    return parseSheetJSON(text)
 }
