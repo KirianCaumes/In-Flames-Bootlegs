@@ -140,7 +140,7 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
                 {value ? (
                     <button
                         aria-label={`Clear ${label.toLowerCase()}`}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-500"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-500  cursor-pointer"
                         onClick={() => {
                             onChange('')
                         }}
@@ -261,7 +261,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-6">
             <div className={`flex items-center justify-between ${areFiltersOpen ? 'mb-4' : 'sm:mb-4'}`}>
                 <button
-                    className="sm:hidden flex items-center gap-1.5"
+                    className="sm:hidden flex items-center gap-1.5 cursor-pointer"
                     onClick={() => {
                         setAreFiltersOpen(prev => !prev)
                     }}
@@ -284,7 +284,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                 </button>
                 <h2 className="hidden sm:block text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</h2>
                 <button
-                    className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10"
+                    className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10  cursor-pointer"
                     onClick={() => {
                         onFiltersChange(DEFAULT_FILTERS)
                     }}
@@ -312,7 +312,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                             <div className="relative">
                                 <select
                                     // eslint-disable-next-line max-len
-                                    className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                    className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
                                     id="filter-year"
                                     onChange={e => {
                                         patch('year', e.target.value)
@@ -354,7 +354,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                                 <div className="relative flex-1">
                                     <select
                                         // eslint-disable-next-line max-len
-                                        className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                        className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
                                         id="filter-country"
                                         onChange={e => {
                                             patch('country', e.target.value)
@@ -431,7 +431,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                             <div className="relative">
                                 <select
                                     // eslint-disable-next-line max-len
-                                    className="appearance-none bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                    className="appearance-none bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
                                     id="sort-select"
                                     onChange={e => {
                                         patch('sort', e.target.value as SortOrder)

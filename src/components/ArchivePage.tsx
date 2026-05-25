@@ -195,7 +195,7 @@ export default function ArchivePage({
                         </svg>
                         <p className="text-gray-400 font-medium">No shows match your filters</p>
                         <button
-                            className="text-sm text-brand-500 hover:text-brand-400 underline underline-offset-2 transition-colors"
+                            className="text-sm text-brand-500 hover:text-brand-400 underline underline-offset-2 transition-colors  cursor-pointer"
                             onClick={() => {
                                 handleFiltersChange(DEFAULT_FILTERS)
                             }}

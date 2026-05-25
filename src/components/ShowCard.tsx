@@ -342,7 +342,8 @@ const ShowCard = memo(function ShowCard({
             {songs.length > 0 && (
                 <div className="border-t border-gray-800 px-4 pt-1 pb-1">
                     <button
-                        className="w-full flex items-center justify-between gap-2 text-xs font-medium text-gray-400 hover:text-gray-200 transition-colors py-1"
+                        // eslint-disable-next-line max-len
+                        className="w-full flex items-center justify-between gap-2 text-xs font-medium text-gray-400 hover:text-gray-200 transition-colors py-1 cursor-pointer"
                         onClick={() => {
                             setIsSetlistOpen(o => !o)
                         }}
