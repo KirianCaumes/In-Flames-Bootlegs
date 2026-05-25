@@ -4,7 +4,7 @@ A searchable archive of In Flames concert recordings and bootlegs. Discover live
 
 Check it out [here](<https://in-flames-bootlegs.kiriancaumes.fr/>) 👈
 
-![Preview](https://github-production-user-asset-6210df.s3.amazonaws.com/24525092/595535598-4d45c131-f203-45a4-a3d7-31e1a5c13ae6.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260520%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260520T143853Z&X-Amz-Expires=300&X-Amz-Signature=0f5f2ccbf84095e6519e614e9b44add7728198332de4133bc1f4a77f43c73be3&X-Amz-SignedHeaders=host&response-content-type=image%2Fpng)
+![Preview](https://private-user-images.githubusercontent.com/24525092/595535598-4d45c131-f203-45a4-a3d7-31e1a5c13ae6.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Nzk3MTY3OTMsIm5iZiI6MTc3OTcxNjQ5MywicGF0aCI6Ii8yNDUyNTA5Mi81OTU1MzU1OTgtNGQ0NWMxMzEtZjIwMy00NWE0LWEzZDctMzFlMWE1YzEzYWU2LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA1MjUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNTI1VDEzNDEzM1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWM1YWJhYjYwZjZjNTM0OThmMjEyMmFkYTViNjA5YzliNGNhZmUyMDFiNGE1YzZkMjY0NThmNmQ1YmI1MzA4NzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.Ge-HVCXzkUuAFclIrCHFhFqxCwy4RmUGuXUH89HZ3FE)
 
 > *✨ A completely vibe coded application with AI assistance ✨*
 
