@@ -140,7 +140,7 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
                 {value ? (
                     <button
                         aria-label={`Clear ${label.toLowerCase()}`}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-500  cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-500 cursor-pointer"
                         onClick={() => {
                             onChange('')
                         }}
@@ -284,7 +284,8 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                 </button>
                 <h2 className="hidden sm:block text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</h2>
                 <button
-                    className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10  cursor-pointer"
+                    // eslint-disable-next-line max-len
+                    className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 cursor-pointer"
                     onClick={() => {
                         onFiltersChange(DEFAULT_FILTERS)
                     }}
