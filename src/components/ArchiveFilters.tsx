@@ -257,9 +257,19 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
 
     const countryFlagSrc = filters.country ? flagUrl(filters.country) : null
 
+    const isFiltered = Object.entries(filters).some(([key, value]) => {
+        if (key === 'sort') {
+            return false
+        }
+        if (typeof value === 'boolean') {
+            return value
+        }
+        return value !== ''
+    })
+
     return (
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-6">
-            <div className={`flex items-center justify-between ${areFiltersOpen ? 'mb-4' : 'sm:mb-4'}`}>
+            <div className="flex items-center justify-between">
                 <button
                     className="sm:hidden flex items-center gap-1.5 cursor-pointer"
                     onClick={() => {
@@ -285,7 +295,8 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                 <h2 className="hidden sm:block text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</h2>
                 <button
                     // eslint-disable-next-line max-len
-                    className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 cursor-pointer"
+                    className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 cursor-pointer disabled:text-stone-600 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                    disabled={!isFiltered}
                     onClick={() => {
                         onFiltersChange(DEFAULT_FILTERS)
                     }}
@@ -299,7 +310,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                 className="grid transition-[grid-template-rows] duration-300 ease-in-out"
                 style={{ gridTemplateRows: areFiltersOpen ? '1fr' : '0fr' }}
             >
-                <div className="overflow-hidden">
+                <div className="overflow-hidden mt-2">
                     {/* Primary filters */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                         {/* Year */}
