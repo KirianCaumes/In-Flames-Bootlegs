@@ -14,7 +14,7 @@ export const metadata: Metadata = {
         // eslint-disable-next-line max-len
         'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
     keywords: ['In Flames', 'bootleg', 'live show', 'concert', 'recording', 'archive', 'setlist', 'live recording'],
-    authors: [{ name: "A Jester's Collection" }],
+    authors: [{ name: "A Jester's Collection", url: 'https://jesterscollection.kiriancaumes.fr/' }],
     creator: "A Jester's Collection",
     robots: { index: true, follow: true },
     openGraph: {
