@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useEffect, useRef, useState, type ReactNode } from 'react'
+import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import { flagUrl } from 'lib/flags'
 import { formatDate, getYear } from 'lib/date'
@@ -219,26 +219,35 @@ const ShowCard = memo(function ShowCard({
         label: string
         /** Optional click handler */
         onClick?: () => void
-    }> = []
-    if (show.Link) {
-        links.push({
-            href: show.Link,
-            cls: 'text-red-400 hover:text-red-300',
-            icon: <WatchIcon />,
-            label: 'Watch',
-            onClick: () => {
-                trackEvent('bootleg_click', { link_url: show.Link, source: 'footer', title: `${show.City} ${show.Country} ${date}` })
-            },
-        })
-    }
-    if (show['Setlist.fm']) {
-        links.push({
-            href: show['Setlist.fm'],
-            cls: 'text-lime-500 hover:text-lime-400',
-            icon: <MusicIcon />,
-            label: 'Setlist.fm',
-        })
-    }
+    }> = useMemo(
+        () =>
+            [
+                show.Link
+                    ? {
+                          href: show.Link,
+                          cls: 'text-red-400 hover:text-red-300',
+                          icon: <WatchIcon />,
+                          label: 'Watch',
+                          onClick: () => {
+                              trackEvent('bootleg_click', {
+                                  link_url: show.Link,
+                                  source: 'footer',
+                                  title: `${show.City} ${show.Country} ${date}`,
+                              })
+                          },
+                      }
+                    : null,
+                show['Setlist.fm']
+                    ? {
+                          href: show['Setlist.fm'],
+                          cls: 'text-lime-500 hover:text-lime-400',
+                          icon: <MusicIcon />,
+                          label: 'Setlist.fm',
+                      }
+                    : null,
+            ].filter(x => !!x),
+        [date, show],
+    )
 
     return (
         <article

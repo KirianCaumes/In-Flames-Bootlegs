@@ -113,7 +113,7 @@ async function resolveThumbnail(url: string): Promise<string | null> {
                 googleApiUrl.searchParams.set('key', apiKey)
 
                 const res = await fetch(googleApiUrl.toString(), {
-                    next: { revalidate: 7 * 24 * 3600 }, // Every 7 days
+                    next: { revalidate: 15 * 24 * 3600 }, // Every 15 days
                 })
 
                 const data = (await res.json()) as GoogleApiPlaylistResponse
@@ -123,7 +123,7 @@ async function resolveThumbnail(url: string): Promise<string | null> {
         }
         const res = await fetch(url, {
             headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
-            next: { revalidate: 7 * 24 * 3600 }, // Every 7 days
+            next: { revalidate: 15 * 24 * 3600 }, // Every 15 days
         })
         const html = await res.text()
         const match =
