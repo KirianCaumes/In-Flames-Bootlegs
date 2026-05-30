@@ -113,7 +113,7 @@ async function resolveThumbnail(url: string): Promise<string | null> {
                 googleApiUrl.searchParams.set('key', apiKey)
 
                 const res = await fetch(googleApiUrl.toString(), {
-                    next: { revalidate: 15 * 24 * 3600 }, // Every 15 days
+                    next: { revalidate: 31 * 24 * 3600 }, // Every 31 days
                 })
 
                 const data = (await res.json()) as GoogleApiPlaylistResponse
@@ -123,7 +123,7 @@ async function resolveThumbnail(url: string): Promise<string | null> {
         }
         const res = await fetch(url, {
             headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
-            next: { revalidate: 15 * 24 * 3600 }, // Every 15 days
+            next: { revalidate: 31 * 24 * 3600 }, // Every 31 days
         })
         const html = await res.text()
         const match =
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
         { thumbnail },
         {
-            headers: { 'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600' },
+            headers: { 'Cache-Control': 'public, max-age=2678400, stale-while-revalidate=86400' },
         },
     )
 }
