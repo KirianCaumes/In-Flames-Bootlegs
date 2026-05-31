@@ -218,7 +218,7 @@ const ShowCard = memo(function ShowCard({
             <div className="h-36 overflow-hidden bg-gray-900 border-b border-gray-800 shrink-0">
                 {show.Link ? (
                     <a
-                        aria-label={`Watch In Flames – ${show.City} ${show.Country} – ${date}`}
+                        aria-label={`Watch In Flames - ${show.City} ${show.Country} - ${date}`}
                         className="block h-full group relative"
                         href={show.Link}
                         onClick={() => {
@@ -234,7 +234,7 @@ const ShowCard = memo(function ShowCard({
                         <DefaultThumbnail />
                         {thumbStatus !== 'error' && (
                             <Image
-                                alt={`In Flames – ${show.City} ${show.Country} – ${date}`}
+                                alt={`In Flames - ${show.City} ${show.Country} - ${date}`}
                                 // eslint-disable-next-line max-len
                                 className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300 text-transparent${thumbStatus === 'resolved' ? '' : ' opacity-0'}`}
                                 fill
@@ -246,7 +246,7 @@ const ShowCard = memo(function ShowCard({
                                     setThumbStatus('resolved')
                                 }}
                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                src={`/thumbnail/${encodeURIComponent(show.Link)}`}
+                                src={`/thumbnail/${show.Id}-In Flames - ${show.City} ${show.Country} - ${date}`}
                             />
                         )}
                     </a>

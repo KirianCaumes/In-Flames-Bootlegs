@@ -147,25 +147,32 @@ export async function GET(
     }: {
         /** The route parameters */
         readonly params: Promise<{
-            /** The folder ID */
-            readonly url: string
+            /** Slug of the show ("Id-Title") */
+            readonly slug: string
         }>
     },
 ) {
     const resolved = await params
-    const url = resolved.url
+    const { slug } = resolved
 
-    if (!url) {
-        return new Response('Missing url parameter', { status: 400 })
+    if (!slug) {
+        return new Response('Missing slug parameter', { status: 400 })
+    }
+
+    const id = slug.split('-')[0]
+
+    if (!id) {
+        return new Response('Missing id parameter', { status: 400 })
     }
 
     const shows = await fetchShows()
+    const show = shows.find(s => s.Id.toString() === id)
 
-    if (!shows.some(s => s.Link === url)) {
-        return new Response('URL not found in shows archive', { status: 404 })
+    if (!show) {
+        return new Response('Show not found in shows archive', { status: 404 })
     }
 
-    const thumbnail = await resolveThumbnail(url)
+    const thumbnail = await resolveThumbnail(show.Link)
 
     if (!thumbnail) {
         return new Response('Thumbnail not found', { status: 404 })

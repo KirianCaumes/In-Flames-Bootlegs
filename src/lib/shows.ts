@@ -3,6 +3,8 @@
  * Maps directly to columns from the Google Sheet data source.
  */
 export interface Show {
+    /** Unique identifier for the show, based on the Google Sheet row */
+    Id: number
     /** Concert title/name */
     Title: string
     /** Concert date in DD/MM/YYYY format */
@@ -45,11 +47,12 @@ function parseSheetJSON(raw: string): Array<Show> {
     const headers = rows[0].map(h => h.trim())
     return rows
         .slice(1)
-        .map(row => {
-            const obj: Record<string, string> = {}
+        .map((row, i) => {
+            const obj: Record<string, string | number> = {}
             headers.forEach((h, idx) => {
                 obj[h] = (row[idx] || '').trim()
             })
+            obj.Id = i + 1
             return obj as unknown as Show
         })
         .filter(s => s.Title && !s.Title.startsWith('💀')) // Filter out rows without a title or marked as deleted
