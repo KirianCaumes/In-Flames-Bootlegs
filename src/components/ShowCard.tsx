@@ -242,13 +242,8 @@ const ShowCard = memo(function ShowCard({
                                 onError={() => {
                                     setThumbStatus('error')
                                 }}
-                                onLoad={e => {
-                                    // YouTube serves a 120×90 placeholder with HTTP 200 for unavailable videos
-                                    if (e.currentTarget.naturalWidth <= 120) {
-                                        setThumbStatus('error')
-                                    } else {
-                                        setThumbStatus('resolved')
-                                    }
+                                onLoad={() => {
+                                    setThumbStatus('resolved')
                                 }}
                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                                 src={`/thumbnail/${encodeURIComponent(show.Link)}`}
