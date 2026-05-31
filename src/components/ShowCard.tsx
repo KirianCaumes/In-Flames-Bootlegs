@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import { flagUrl } from 'lib/flags'
 import { formatDate, getYear } from 'lib/date'
@@ -159,7 +159,6 @@ const ShowCard = memo(function ShowCard({
     const cardRef = useRef<HTMLDivElement>(null)
     const [isSetlistOpen, setIsSetlistOpen] = useState(false)
     const [thumbStatus, setThumbStatus] = useState<'error' | 'resolved' | undefined>()
-    const [thumbnail, setThumbnail] = useState<string | null>(null)
 
     const year = getYear(show.Date)
     const date = formatDate(show.Date)
@@ -167,44 +166,6 @@ const ShowCard = memo(function ShowCard({
         .map(s => s.trim())
         .filter(Boolean)
     const flagSrc = flagUrl(show.Country)
-
-    useEffect(() => {
-        if (!show.Link) {
-            return
-        }
-
-        const observer = new IntersectionObserver(
-            entries => {
-                if (entries[0].isIntersecting) {
-                    const url = new URL('/api/thumbnail', window.location.origin)
-                    url.searchParams.set('url', show.Link)
-                    fetch(url.toString())
-                        .then(r => r.json())
-                        .then(
-                            (data: {
-                                /** Thumbnail URL or null if not available */
-                                thumbnail: string | null
-                            }) => {
-                                setThumbnail(data.thumbnail)
-                            },
-                        )
-                        .catch(() => {
-                            /** Empty */
-                        })
-                    observer.disconnect()
-                }
-            },
-            { rootMargin: '100px' },
-        )
-
-        if (cardRef.current) {
-            observer.observe(cardRef.current)
-        }
-
-        return () => {
-            observer.disconnect()
-        }
-    }, [show.Link])
 
     const badges = BADGES.filter(b => show[b.key] === 'Yes')
 
@@ -271,12 +232,12 @@ const ShowCard = memo(function ShowCard({
                         target="_blank"
                     >
                         <DefaultThumbnail />
-                        {thumbnail && thumbStatus !== 'error' && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                        {thumbStatus !== 'error' && (
+                            <Image
                                 alt={`In Flames – ${show.City} ${show.Country} – ${date}`}
                                 // eslint-disable-next-line max-len
                                 className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300 text-transparent${thumbStatus === 'resolved' ? '' : ' opacity-0'}`}
+                                fill
                                 loading="lazy"
                                 onError={() => {
                                     setThumbStatus('error')
@@ -289,7 +250,8 @@ const ShowCard = memo(function ShowCard({
                                         setThumbStatus('resolved')
                                     }
                                 }}
-                                src={thumbnail}
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                src={`/thumbnail/${encodeURIComponent(show.Link)}`}
                             />
                         )}
                     </a>

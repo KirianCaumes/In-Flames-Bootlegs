@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from 'next/server'
 import { fetchShows } from 'lib/shows'
+import type { NextRequest } from 'next/server'
 
 interface GoogleApiPlaylistResponse {
     /** Kind */
@@ -136,33 +136,55 @@ async function resolveThumbnail(url: string): Promise<string | null> {
 }
 
 /**
- * API endpoint that returns a thumbnail for a given show URL.
- * Validates that the URL exists in the shows archive before resolving the thumbnail.
- * Implements caching headers for optimal performance.
- * @param request - Next.js request object containing 'url' query parameter
- * @returns JSON response with thumbnail URL or error message with appropriate status code
+ * GET /thumbnail/{url}
+ * @param _req - NextRequest containing the media URL as a query parameter
+ * @returns JSON response with the thumbnail URL or an error message
  */
-export async function GET(request: NextRequest) {
-    const url = request.nextUrl.searchParams.get('url')
+export async function GET(
+    _req: NextRequest,
+    {
+        params,
+    }: {
+        /** The route parameters */
+        readonly params: Promise<{
+            /** The folder ID */
+            readonly url: string
+        }>
+    },
+) {
+    const resolved = await params
+    const url = resolved.url
+
     if (!url) {
-        return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 })
+        return new Response('Missing url parameter', { status: 400 })
     }
 
     const shows = await fetchShows()
-    const allowedUrls = new Set(shows.map(s => s.Link).filter(Boolean))
-    if (!allowedUrls.has(url)) {
-        return NextResponse.json({ error: 'URL not found in shows archive' }, { status: 404 })
+
+    if (!shows.some(s => s.Link === url)) {
+        return new Response('URL not found in shows archive', { status: 404 })
     }
 
     const thumbnail = await resolveThumbnail(url)
+
     if (!thumbnail) {
-        return NextResponse.json({ error: 'Thumbnail not found' }, { status: 404 })
+        return new Response('Thumbnail not found', { status: 404 })
     }
 
-    return NextResponse.json(
-        { thumbnail },
-        {
-            headers: { 'Cache-Control': 'public, max-age=2678400, stale-while-revalidate=86400' },
+    const imageRes = await fetch(thumbnail, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
+        next: { revalidate: 31 * 24 * 3600 }, // Every 31 days
+    })
+
+    if (!imageRes.ok) {
+        return new Response('Failed to fetch thumbnail image', { status: imageRes.status })
+    }
+
+    return new Response(imageRes.body, {
+        headers: {
+            'Content-Type': imageRes.headers.get('Content-Type') ?? 'image/jpeg',
+            // Not useful when the image is served from the Next.js image optimization API "<Image />" component, but still good for direct access
+            'Cache-Control': 'public, max-age=2678400, stale-while-revalidate=2678400',
         },
-    )
+    })
 }
