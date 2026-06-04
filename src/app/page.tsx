@@ -1,5 +1,5 @@
 import { headers } from 'next/headers'
-import { fetchShows } from 'lib/shows'
+import { fetchArchiveShows } from 'lib/archive/shows'
 import ArchivePage from 'components/ArchivePage'
 
 /**
@@ -8,7 +8,7 @@ import ArchivePage from 'components/ArchivePage'
  * @returns Promise<JSX.Element>
  */
 export default async function Page() {
-    const shows = await fetchShows()
+    const shows = await fetchArchiveShows()
     const ua = (await headers()).get('user-agent') ?? ''
     const device = /mobile|android|iphone|ipad|ipod/i.test(ua) ? 'mobile' : 'desktop'
 

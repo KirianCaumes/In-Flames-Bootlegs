@@ -2,10 +2,11 @@
 
 import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
+import { trackBootlegClick } from 'lib/analytics'
+import { buildShowThumbnailPath } from 'lib/archive/thumbnails'
 import { flagUrl } from 'lib/flags'
-import { formatDate, getYear } from 'lib/date'
-import { trackEvent } from 'lib/ga'
-import type { Show } from 'lib/shows'
+import { getArchiveShowYear } from 'lib/archive/shows'
+import type { ArchiveShow } from 'lib/archive/shows'
 
 /**
  * Badge configuration for show attributes.
@@ -13,21 +14,27 @@ import type { Show } from 'lib/shows'
  */
 const BADGES = [
     {
-        key: 'ProShot' as const,
+        key: 'hasProShot' as const,
         label: 'Pro Shot',
         cls: 'text-orange-300 bg-orange-900/50 border-orange-800/40',
     },
     {
-        key: 'Video' as const,
+        key: 'hasVideo' as const,
         label: 'Video',
         cls: 'text-blue-300 bg-blue-900/50 border-blue-800/40',
     },
     {
-        key: 'Full' as const,
+        key: 'isFullShow' as const,
         label: 'Full Show',
         cls: 'text-emerald-300 bg-emerald-900/50 border-emerald-800/40',
     },
 ]
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+})
 
 // ── SVG icons ─────────────────────────────────────────────────────────────────
 
@@ -154,20 +161,17 @@ const ShowCard = memo(function ShowCard({
     show,
 }: {
     /** Show data to display */
-    readonly show: Show
+    readonly show: ArchiveShow
 }) {
     const cardRef = useRef<HTMLDivElement>(null)
     const [isSetlistOpen, setIsSetlistOpen] = useState(false)
     const [thumbStatus, setThumbStatus] = useState<'error' | 'resolved' | undefined>()
 
-    const year = getYear(show.Date)
-    const date = formatDate(show.Date)
-    const songs = show.Setlist.split('\n')
-        .map(s => s.trim())
-        .filter(Boolean)
-    const flagSrc = flagUrl(show.Country)
+    const year = getArchiveShowYear(show)
+    const date = show.date ? dateFormatter.format(show.date) : null
+    const flagSrc = flagUrl(show.country)
 
-    const badges = BADGES.filter(b => show[b.key] === 'Yes')
+    const badges = BADGES.filter(b => show.availability[b.key])
 
     const links: Array<{
         /** Link URL */
@@ -183,31 +187,27 @@ const ShowCard = memo(function ShowCard({
     }> = useMemo(
         () =>
             [
-                show.Link
+                show.mediaLink
                     ? {
-                          href: show.Link,
+                          href: show.mediaLink,
                           cls: 'text-red-400 hover:text-red-300',
                           icon: <WatchIcon />,
                           label: 'Watch',
                           onClick: () => {
-                              trackEvent('bootleg_click', {
-                                  link_url: show.Link,
-                                  source: 'footer',
-                                  title: `${show.City} ${show.Country} ${date}`,
-                              })
+                              trackBootlegClick({ show, source: 'footer' })
                           },
                       }
                     : null,
-                show['Setlist.fm']
+                show.setlistFmLink
                     ? {
-                          href: show['Setlist.fm'],
+                          href: show.setlistFmLink,
                           cls: 'text-lime-500 hover:text-lime-400',
                           icon: <MusicIcon />,
                           label: 'Setlist.fm',
                       }
                     : null,
             ].filter(x => !!x),
-        [date, show],
+        [show],
     )
 
     return (
@@ -216,17 +216,13 @@ const ShowCard = memo(function ShowCard({
             ref={cardRef}
         >
             <div className="h-36 overflow-hidden bg-gray-900 border-b border-gray-800 shrink-0">
-                {show.Link ? (
+                {show.mediaLink ? (
                     <a
-                        aria-label={`Watch In Flames - ${show.City} ${show.Country} - ${date}`}
+                        aria-label={`Watch In Flames - ${show.city} ${show.country} - ${date ?? '-'}`}
                         className="block h-full group relative"
-                        href={show.Link}
+                        href={show.mediaLink}
                         onClick={() => {
-                            trackEvent('bootleg_click', {
-                                link_url: show.Link,
-                                source: 'thumbnail',
-                                title: `${show.City} ${show.Country} ${date}`,
-                            })
+                            trackBootlegClick({ show, source: 'thumbnail' })
                         }}
                         rel="noopener noreferrer"
                         target="_blank"
@@ -234,7 +230,7 @@ const ShowCard = memo(function ShowCard({
                         <DefaultThumbnail />
                         {thumbStatus !== 'error' && (
                             <Image
-                                alt={`In Flames - ${show.City} ${show.Country} - ${date}`}
+                                alt={`In Flames - ${show.city} ${show.country} - ${date ?? '-'}`}
                                 // eslint-disable-next-line max-len
                                 className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300 text-transparent${thumbStatus === 'resolved' ? '' : ' opacity-0'}`}
                                 fill
@@ -246,7 +242,7 @@ const ShowCard = memo(function ShowCard({
                                     setThumbStatus('resolved')
                                 }}
                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                src={`/thumbnail/${show.Id}-In Flames - ${show.City} ${show.Country} - ${date}`}
+                                src={buildShowThumbnailPath(show, date ?? '-')}
                             />
                         )}
                     </a>
@@ -260,7 +256,7 @@ const ShowCard = memo(function ShowCard({
                     <div className="flex items-center gap-2 mb-1 min-w-0">
                         {flagSrc ? (
                             <Image
-                                alt={show.Country}
+                                alt={show.country}
                                 className="w-5 h-3.5 rounded-sm object-cover shadow-sm shrink-0 text-transparent"
                                 height={14}
                                 loading="lazy"
@@ -271,7 +267,7 @@ const ShowCard = memo(function ShowCard({
                             <UnknownFlag />
                         )}
                         <h3 className="font-semibold text-gray-100 leading-snug flex-1 min-w-0 truncate">
-                            {show.City || show.Country || 'Unknown'}
+                            {show.city || show.country || 'Unknown'}
                         </h3>
                         {year && (
                             <span className="text-xs font-bold text-brand-400 bg-brand-500/15 border border-brand-500/30 px-2 py-0.5 rounded-full shrink-0">
@@ -280,7 +276,7 @@ const ShowCard = memo(function ShowCard({
                         )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs text-gray-400">{show.Country || 'Unknown'}</span>
+                        <span className="text-xs text-gray-400">{show.country || 'Unknown'}</span>
                         <span className="text-gray-500 text-xs">·</span>
                         <span className="text-xs text-gray-400">{date}</span>
                     </div>
@@ -301,11 +297,11 @@ const ShowCard = memo(function ShowCard({
                 )}
 
                 {/* Comment */}
-                {show.Comment && <p className="text-xs text-yellow-400 italic leading-relaxed">{show.Comment}</p>}
+                {show.comment && <p className="text-xs text-yellow-400 italic leading-relaxed">{show.comment}</p>}
             </div>
 
             {/* Setlist */}
-            {songs.length > 0 && (
+            {show.songs.length > 0 && (
                 <div className="border-t border-gray-800 px-4 pt-1 pb-1">
                     <button
                         // eslint-disable-next-line max-len
@@ -318,7 +314,7 @@ const ShowCard = memo(function ShowCard({
                         <span className="flex items-center gap-1.5">
                             <MusicIcon className="w-3.5 h-3.5 text-gray-400" />
                             Setlist
-                            <span className="text-gray-400 font-normal">({songs.length} songs)</span>
+                            <span className="text-gray-400 font-normal">({show.songs.length} songs)</span>
                         </span>
                         <svg
                             className={`w-4 h-4 shrink-0 transition-transform duration-200 ${isSetlistOpen ? 'rotate-180' : ''}`}
@@ -338,7 +334,7 @@ const ShowCard = memo(function ShowCard({
                         className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${isSetlistOpen ? 'max-h-[1200px]' : 'max-h-0'}`}
                     >
                         <ol className="pb-1 space-y-0.5 pt-1">
-                            {songs.map((s, i) => (
+                            {show.songs.map((s, i) => (
                                 <li
                                     className="flex gap-2 text-xs leading-relaxed"
                                     // eslint-disable-next-line react/no-array-index-key

@@ -4,67 +4,11 @@ import { useDeferredValue, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import ShowCard from 'components/ShowCard'
-import ArchiveFilters, { type Filters, type SortOrder, DEFAULT_FILTERS } from 'components/ArchiveFilters'
-import { getYear, parseDate } from 'lib/date'
+import ArchiveFilters from 'components/ArchiveFilters'
+import { applyArchiveQuery, DEFAULT_ARCHIVE_QUERY, parseArchiveQuery, serializeArchiveQuery, type ArchiveQuery } from 'lib/archive/query'
 // eslint-disable-next-line no-restricted-imports
 import IconSvg from '../../public/favicon.svg'
-import type { Show } from 'lib/shows'
-
-// ── URL ↔ Filters helpers ────────────────────────────────────────────────────
-
-/**
- * Parses URL search parameters into a Filters object.
- * @returns Filters object representing the current filter state
- */
-function filtersFromParams(params: {
-    /** URLSearchParams-like object */
-    get: (key: string) => string | null
-}): Filters {
-    return {
-        year: params.get('year') ?? '',
-        country: params.get('country') ?? '',
-        city: params.get('city') ?? '',
-        song: params.get('song') ?? '',
-        proshot: params.get('proshot') === '1',
-        video: params.get('video') === '1',
-        full: params.get('full') === '1',
-        sort: (params.get('sort') as SortOrder | null) ?? 'date-asc',
-    }
-}
-
-/**
- * Converts a Filters object into a URL search parameters string.
- * @param filters - Filters object to convert to URL search parameters
- * @returns URL search parameters string representing the current filter state
- */
-function paramsFromFilters(filters: Filters): string {
-    const params = new URLSearchParams()
-    if (filters.year) {
-        params.set('year', filters.year)
-    }
-    if (filters.country) {
-        params.set('country', filters.country)
-    }
-    if (filters.city) {
-        params.set('city', filters.city)
-    }
-    if (filters.song) {
-        params.set('song', filters.song)
-    }
-    if (filters.proshot) {
-        params.set('proshot', '1')
-    }
-    if (filters.video) {
-        params.set('video', '1')
-    }
-    if (filters.full) {
-        params.set('full', '1')
-    }
-    if (filters.sort !== 'date-asc') {
-        params.set('sort', filters.sort)
-    }
-    return params.toString()
-}
+import type { ArchiveShow } from 'lib/archive/shows'
 
 // ── ArchivePage ───────────────────────────────────────────────────────────────
 
@@ -79,59 +23,28 @@ export default function ArchivePage({
     device,
 }: {
     /** Shows to display and filter */
-    readonly shows: Array<Show>
+    readonly shows: Array<ArchiveShow>
     /** Detected device type for responsive behavior */
     readonly device: 'mobile' | 'desktop'
 }) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
-    const [filters, setFilters] = useState<Filters>(() => filtersFromParams(searchParams))
-    const deferredFilters = useDeferredValue(filters)
-    const isStale = filters !== deferredFilters
+    const [query, setQuery] = useState<ArchiveQuery>(() => parseArchiveQuery(searchParams))
+    const deferredQuery = useDeferredValue(query)
+    const isStale = query !== deferredQuery
 
     /**
      * Updates filters state and syncs the new filter values to the URL.
      * @param next - New filter values to apply
      */
-    function handleFiltersChange(next: Filters) {
-        setFilters(next)
-        const qs = paramsFromFilters(next)
+    function handleQueryChange(next: ArchiveQuery) {
+        setQuery(next)
+        const qs = serializeArchiveQuery(next)
         router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
     }
 
-    const filtered = useMemo(() => {
-        const result = shows.filter(s => {
-            if (deferredFilters.year && getYear(s.Date) !== deferredFilters.year) {
-                return false
-            }
-            if (deferredFilters.country && s.Country.trim() !== deferredFilters.country) {
-                return false
-            }
-            if (deferredFilters.city && !s.City.toLowerCase().includes(deferredFilters.city.toLowerCase())) {
-                return false
-            }
-            if (deferredFilters.song && !s.Setlist.toLowerCase().includes(deferredFilters.song.toLowerCase())) {
-                return false
-            }
-            if (deferredFilters.proshot && s.ProShot !== 'Yes') {
-                return false
-            }
-            if (deferredFilters.video && s.Video !== 'Yes') {
-                return false
-            }
-            if (deferredFilters.full && s.Full !== 'Yes') {
-                return false
-            }
-            return true
-        })
-        result.sort((a, b) => {
-            const da = parseDate(a.Date),
-                db = parseDate(b.Date)
-            return deferredFilters.sort === 'date-asc' ? da - db : db - da
-        })
-        return result
-    }, [shows, deferredFilters])
+    const filtered = useMemo(() => applyArchiveQuery(shows, deferredQuery), [shows, deferredQuery])
 
     return (
         <>
@@ -163,8 +76,8 @@ export default function ArchivePage({
                 {/* Filters */}
                 <ArchiveFilters
                     defaultOpen={device === 'desktop'}
-                    filters={filters}
-                    onFiltersChange={handleFiltersChange}
+                    onQueryChange={handleQueryChange}
+                    query={query}
                     shows={shows}
                 />
 
@@ -197,7 +110,7 @@ export default function ArchivePage({
                         <button
                             className="text-sm text-brand-500 hover:text-brand-400 underline underline-offset-2 transition-colors cursor-pointer"
                             onClick={() => {
-                                handleFiltersChange(DEFAULT_FILTERS)
+                                handleQueryChange(DEFAULT_ARCHIVE_QUERY)
                             }}
                             type="button"
                         >
@@ -215,7 +128,7 @@ export default function ArchivePage({
                         {filtered.map((show, i) => (
                             <ShowCard
                                 // eslint-disable-next-line react/no-array-index-key
-                                key={`${show.Date}-${show.City}-${i}`}
+                                key={`${show.id}-${i}`}
                                 show={show}
                             />
                         ))}

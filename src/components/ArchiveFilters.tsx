@@ -2,49 +2,16 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
+import { buildArchiveFacets, DEFAULT_ARCHIVE_QUERY, isArchiveQueryActive, patchArchiveQuery } from 'lib/archive/query'
 import { flagUrl } from 'lib/flags'
-import { getYear } from 'lib/date'
-import type { Show } from 'lib/shows'
+import type { ArchiveShow } from 'lib/archive/shows'
+import type { ArchiveQuery, ArchiveSortOrder } from 'lib/archive/query'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-/** Sort order for show dates */
-export type SortOrder = 'date-asc' | 'date-desc'
-
-/**
- * Filter state for the archive page.
- * Controls which shows are displayed based on user selections.
- */
-export interface Filters {
-    /** Year filter */
-    year: string
-    /** Country filter */
-    country: string
-    /** City filter */
-    city: string
-    /** Song filter */
-    song: string
-    /** Pro shot filter */
-    proshot: boolean
-    /** Video filter */
-    video: boolean
-    /** Full show filter */
-    full: boolean
-    /** Sort order filter */
-    sort: SortOrder
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const DEFAULT_FILTERS: Filters = {
-    year: '',
-    country: '',
-    city: '',
-    song: '',
-    proshot: false,
-    video: false,
-    full: false,
-    sort: 'date-asc',
-}
+export type Filters = ArchiveQuery
+export type SortOrder = ArchiveSortOrder
+export const DEFAULT_FILTERS = DEFAULT_ARCHIVE_QUERY
 
 const CHECKBOX_FILTERS: Array<{
     /** Key for the filter */
@@ -194,11 +161,11 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
 
 interface ArchiveFiltersProps {
     /** Shows to display and filter */
-    readonly shows: Array<Show>
-    /** Current filter values */
-    readonly filters: Filters
-    /** Callback when filters change */
-    readonly onFiltersChange: (filters: Filters) => void
+    readonly shows: Array<ArchiveShow>
+    /** Current archive query */
+    readonly query: ArchiveQuery
+    /** Callback when query changes */
+    readonly onQueryChange: (query: ArchiveQuery) => void
     /** Whether the filter panel is open by default (server-detected from User-Agent) */
     readonly defaultOpen: boolean
 }
@@ -208,7 +175,7 @@ interface ArchiveFiltersProps {
  * Renders year/country/city/song selectors, checkbox toggles, and sort order.
  * @returns Filter UI for refining the list of shows displayed in the archive.
  */
-export default function ArchiveFilters({ shows, filters, onFiltersChange, defaultOpen }: ArchiveFiltersProps) {
+export default function ArchiveFilters({ shows, query, onQueryChange, defaultOpen }: ArchiveFiltersProps) {
     const [areFiltersOpen, setAreFiltersOpen] = useState(defaultOpen)
 
     // Open filters by default on desktop
@@ -226,46 +193,19 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
         }
     }, [areFiltersOpen])
 
-    const years = useMemo(() => [...new Set(shows.map(s => getYear(s.Date)).filter((y): y is string => y !== null))].sort(), [shows])
-    const countries = useMemo(() => [...new Set(shows.map(s => s.Country.trim()).filter(Boolean))].sort(), [shows])
-    const cities = useMemo(() => [...new Set(shows.map(s => s.City.trim()).filter(Boolean))].sort(), [shows])
-    const allSongs = useMemo(() => {
-        const seen = new Map<string, string>()
-        shows
-            .flatMap(s =>
-                s.Setlist.split('\n')
-                    .map(l => l.trim())
-                    .filter(Boolean),
-            )
-            .forEach(s => {
-                const key = s.toLowerCase()
-                if (!seen.has(key)) {
-                    seen.set(key, s)
-                }
-            })
-        return [...seen.values()].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
-    }, [shows])
+    const facets = useMemo(() => buildArchiveFacets(shows), [shows])
 
     /**
      * Helper function to update a single filter value while keeping the rest unchanged.
      * @param key - The filter key to update
      * @param value - The new value for the specified filter key
      */
-    function patch<K extends keyof Filters>(key: K, value: Filters[K]) {
-        onFiltersChange({ ...filters, [key]: value })
+    function patch<K extends keyof ArchiveQuery>(key: K, value: ArchiveQuery[K]) {
+        onQueryChange(patchArchiveQuery(query, key, value))
     }
 
-    const countryFlagSrc = filters.country ? flagUrl(filters.country) : null
-
-    const isFiltered = Object.entries(filters).some(([key, value]) => {
-        if (key === 'sort') {
-            return false
-        }
-        if (typeof value === 'boolean') {
-            return value
-        }
-        return value !== ''
-    })
+    const countryFlagSrc = query.country ? flagUrl(query.country) : null
+    const isFiltered = isArchiveQueryActive(query)
 
     return (
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-6">
@@ -298,7 +238,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                     className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 cursor-pointer disabled:text-stone-600 disabled:hover:bg-transparent disabled:cursor-not-allowed"
                     disabled={!isFiltered}
                     onClick={() => {
-                        onFiltersChange(DEFAULT_FILTERS)
+                        onQueryChange(DEFAULT_ARCHIVE_QUERY)
                     }}
                     type="button"
                 >
@@ -329,10 +269,10 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                                     onChange={e => {
                                         patch('year', e.target.value)
                                     }}
-                                    value={filters.year}
+                                    value={query.year}
                                 >
                                     <option value="">All years</option>
-                                    {years.map(y => (
+                                    {facets.years.map(y => (
                                         <option
                                             key={y}
                                             value={y}
@@ -356,7 +296,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                             <div className="flex items-center gap-2">
                                 {countryFlagSrc && (
                                     <Image
-                                        alt={filters.country}
+                                        alt={query.country}
                                         className="w-5 h-3.5 rounded-sm object-cover shadow shrink-0 text-transparent"
                                         height={14}
                                         src={countryFlagSrc}
@@ -371,10 +311,10 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                                         onChange={e => {
                                             patch('country', e.target.value)
                                         }}
-                                        value={filters.country}
+                                        value={query.country}
                                     >
                                         <option value="">All countries</option>
-                                        {countries.map(c => (
+                                        {facets.countries.map(c => (
                                             <option
                                                 key={c}
                                                 value={c}
@@ -395,9 +335,9 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                             onChange={v => {
                                 patch('city', v)
                             }}
-                            options={cities}
+                            options={facets.cities}
                             placeholder="e.g. Gothenburg"
-                            value={filters.city}
+                            value={query.city}
                         />
 
                         <ClearableInput
@@ -407,9 +347,9 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                             onChange={v => {
                                 patch('song', v)
                             }}
-                            options={allSongs}
+                            options={facets.songs}
                             placeholder="e.g. The Jester Race"
-                            value={filters.song}
+                            value={query.song}
                         />
                     </div>
 
@@ -422,7 +362,7 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                                 title={tooltip}
                             >
                                 <input
-                                    checked={filters[key]}
+                                    checked={query[key]}
                                     className="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-[#D50209] cursor-pointer"
                                     onChange={e => {
                                         patch(key, e.target.checked)
@@ -446,9 +386,9 @@ export default function ArchiveFilters({ shows, filters, onFiltersChange, defaul
                                     className="appearance-none bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
                                     id="sort-select"
                                     onChange={e => {
-                                        patch('sort', e.target.value as SortOrder)
+                                        patch('sort', e.target.value as ArchiveSortOrder)
                                     }}
-                                    value={filters.sort}
+                                    value={query.sort}
                                 >
                                     <option value="date-asc">Date (oldest first)</option>
                                     <option value="date-desc">Date (newest first)</option>
