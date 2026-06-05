@@ -3,11 +3,11 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import ShowCard from 'components/ShowCard'
-import ArchiveFilters from 'components/ArchiveFilters'
+import ArchiveFilters from 'components/archive/archive-filters'
+import ShowCard from 'components/archive/show-card'
 import { applyArchiveQuery, DEFAULT_ARCHIVE_QUERY, parseArchiveQuery, serializeArchiveQuery, type ArchiveQuery } from 'lib/archive/query'
 // eslint-disable-next-line no-restricted-imports
-import IconSvg from '../../public/favicon.svg'
+import IconSvg from '../../../public/favicon.svg'
 import type { ArchiveShow } from 'lib/archive/shows'
 
 // ── ArchivePage ───────────────────────────────────────────────────────────────

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
+import { flagUrl } from 'lib/archive/flags'
 import { buildArchiveFacets, DEFAULT_ARCHIVE_QUERY, isArchiveQueryActive, patchArchiveQuery } from 'lib/archive/query'
-import { flagUrl } from 'lib/flags'
 import type { ArchiveShow } from 'lib/archive/shows'
 import type { ArchiveQuery, ArchiveSortOrder } from 'lib/archive/query'
 

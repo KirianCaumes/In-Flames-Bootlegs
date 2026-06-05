@@ -9,7 +9,7 @@ import {
     getAnalyticsConsentServerSnapshot,
     refuseAnalyticsConsent,
     subscribeToAnalyticsConsent,
-} from 'lib/consent'
+} from 'lib/privacy/consent'
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 

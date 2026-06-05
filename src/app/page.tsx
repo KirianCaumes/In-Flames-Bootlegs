@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
+import ArchivePage from 'components/archive/archive-page'
 import { fetchArchiveShows } from 'lib/archive/shows'
-import ArchivePage from 'components/ArchivePage'
 
 /**
  * Root page of the In-Flames bootleg archive.

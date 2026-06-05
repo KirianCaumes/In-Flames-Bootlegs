@@ -2,9 +2,9 @@
 
 import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
-import { trackBootlegClick } from 'lib/analytics'
+import { trackBootlegClick } from 'lib/archive/analytics'
+import { flagUrl } from 'lib/archive/flags'
 import { buildShowThumbnailPath } from 'lib/archive/thumbnails'
-import { flagUrl } from 'lib/flags'
 import { getArchiveShowYear } from 'lib/archive/shows'
 import type { ArchiveShow } from 'lib/archive/shows'
 

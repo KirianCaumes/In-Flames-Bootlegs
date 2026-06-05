@@ -1,5 +1,5 @@
 import { Inter } from 'next/font/google'
-import GdprBanner from 'components/GdprBanner'
+import GdprBanner from 'components/gdpr-banner'
 import type { Metadata } from 'next'
 // eslint-disable-next-line no-restricted-imports
 import './globals.css'

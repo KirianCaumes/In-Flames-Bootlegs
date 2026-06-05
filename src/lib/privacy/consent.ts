@@ -1,4 +1,4 @@
-import Cookie from 'lib/cookie'
+import Cookie from 'lib/privacy/cookie'
 
 /** Consent state for analytics cookies. */
 export type AnalyticsConsent = boolean | null
