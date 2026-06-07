@@ -6,7 +6,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY package*.json ./
 
-RUN npm ci
+RUN npm ci --omit=dev
 
 # Create non-root user for security
 RUN adduser -D -u 10001 usr
