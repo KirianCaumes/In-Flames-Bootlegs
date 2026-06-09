@@ -459,7 +459,7 @@ export default function ArchiveFilters({ shows, query, onQueryChange, defaultOpe
                     </div>
 
                     {/* Secondary filters */}
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 border-t border-gray-800/50">
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-x-5 gap-y-2 pt-3 border-t border-gray-800/50">
                         {CHECKBOX_FILTERS.map(({ key, label, tooltip }) => (
                             <FilterCheckboxInput
                                 id={`filter-${key}`}

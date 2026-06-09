@@ -52,12 +52,20 @@ export default function ArchivePage({
             <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <Image
-                            alt="Bootlegs Archive"
-                            className="w-14 h-14 object-cover shrink-0"
-                            loading="eager"
-                            src={IconSvg as string}
-                        />
+                        <button
+                            className="cursor-pointer"
+                            onClick={() => {
+                                window.scrollTo({ top: 0, behavior: 'smooth' })
+                            }}
+                            type="button"
+                        >
+                            <Image
+                                alt="Bootlegs Archive"
+                                className="w-14 h-14 object-cover shrink-0"
+                                loading="eager"
+                                src={IconSvg as string}
+                            />
+                        </button>
                         <div className="w-px h-8 bg-gradient-to-b from-brand-500 to-brand-600 hidden sm:block" />
                         <div>
                             <h1 className="text-xl sm:text-2xl font-bold tracking-widest uppercase text-brand-500">In Flames</h1>

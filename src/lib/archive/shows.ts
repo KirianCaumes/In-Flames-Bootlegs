@@ -26,7 +26,7 @@ export interface ShowAvailability {
 
 /** Normalized concert show in the bootlegs archive. */
 export interface ArchiveShow {
-    /** Stable identifier from the Google Sheet row order. */
+    /** Stable identifier base on the timestamp. */
     readonly id: number
     /** Concert title/name. */
     readonly title: string
@@ -81,16 +81,16 @@ export function getArchiveShowYear(show: ArchiveShow): number | null {
 /**
  * Normalize a raw Google Sheet row into an archive show.
  * @param row - Raw row keyed by headers.
- * @param id - Stable row identifier.
  * @returns Normalized archive show.
  */
-function normalizeShow(row: RawShowRow, id: number): ArchiveShow {
+function normalizeShow(row: RawShowRow): ArchiveShow {
     const dateText = row.Date ?? ''
+    const date = parseArchiveDate(dateText)
     return {
-        id,
+        id: date ? date.getTime() : 0,
         title: row.Title ?? '',
         dateText,
-        date: parseArchiveDate(dateText),
+        date,
         city: row.City ?? '',
         country: row.Country ?? '',
         songs: (row.Setlist ?? '')
@@ -122,9 +122,9 @@ export function parseArchiveShows(raw: GoogleApiResponse): Array<ArchiveShow> {
     const headers = rows[0].map(header => header.trim())
     return rows
         .slice(1)
-        .map((row, index) => {
+        .map(row => {
             const rawRow = Object.fromEntries(headers.map((header, rowIndex) => [header, (row[rowIndex] ?? '').trim()]))
-            return normalizeShow(rawRow, index + 1)
+            return normalizeShow(rawRow)
         })
         .filter(show => show.title && !show.title.startsWith(DELETED_TITLE_PREFIX))
 }
