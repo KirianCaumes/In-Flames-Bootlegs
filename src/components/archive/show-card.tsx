@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useMemo, useRef, useState, type ReactNode, type ComponentProps } from 'react'
 import Image from 'next/image'
 import { trackBootlegClick } from 'lib/archive/analytics'
 import { flagUrl } from 'lib/archive/flags'
@@ -159,9 +159,13 @@ function DefaultThumbnail() {
  */
 const ShowCard = memo(function ShowCard({
     show,
+    imageLoading = 'lazy',
 }: {
     /** Show data to display */
     readonly show: ArchiveShow
+    /** Image loading strategy, defaults to 'lazy' */
+    // eslint-disable-next-line react/require-default-props
+    readonly imageLoading?: ComponentProps<typeof Image>['loading']
 }) {
     const cardRef = useRef<HTMLDivElement>(null)
     const [isSetlistOpen, setIsSetlistOpen] = useState(false)
@@ -233,15 +237,16 @@ const ShowCard = memo(function ShowCard({
                                 alt={`In Flames - ${show.city} ${show.country} - ${date ?? '-'}`}
                                 // eslint-disable-next-line max-len
                                 className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300 text-transparent${thumbStatus === 'resolved' ? '' : ' opacity-0'}`}
+                                fetchPriority={imageLoading === 'eager' ? 'high' : 'auto'}
                                 fill
-                                loading="lazy"
+                                loading={imageLoading}
                                 onError={() => {
                                     setThumbStatus('error')
                                 }}
                                 onLoad={() => {
                                     setThumbStatus('resolved')
                                 }}
-                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1279px) 33vw, 25vw"
                                 src={buildShowThumbnailPath(show, date ?? '-')}
                             />
                         )}

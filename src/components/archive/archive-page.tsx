@@ -135,6 +135,7 @@ export default function ArchivePage({
                     >
                         {filtered.map((show, i) => (
                             <ShowCard
+                                imageLoading={i < 4 ? 'eager' : 'lazy'}
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`${show.id}-${i}`}
                                 show={show}
@@ -190,7 +191,7 @@ export default function ArchivePage({
                             Suggest a new show
                         </a>
                     </div>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-gray-400 text-xs">
                         Non-commercial fan archive. All recordings and trademarks belong to their respective owners.
                     </p>
                     <a
