@@ -26,7 +26,7 @@ const CHECKBOX_FILTERS: Array<{
         label: 'Pro Shot',
         tooltip:
             // eslint-disable-next-line max-len
-            'Shows with professionally recorded video footage available.\nNote: for some old shows it is difficult to classify the quality of the footage as pro shot or amateur.',
+            'Shows with professionally recorded video and/or audio footage available.\nNote: for some old shows it is difficult to classify the quality of the footage as pro shot or amateur.',
     },
     { key: 'video', label: 'Has Video', tooltip: 'Shows with any kind of video footage available, including amateur recordings.' },
     { key: 'full', label: 'Full Show', tooltip: 'Shows with a complete setlist recorded.' },
@@ -157,6 +157,110 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
     )
 }
 
+/**
+ * Props for the FilterCheckboxInput component.
+ */
+interface FilterCheckboxInputProps {
+    /** Unique identifier for the checkbox and tooltip */
+    readonly id: string
+    /** Label displayed next to the checkbox */
+    readonly label: string
+    /** Optional tooltip content displayed in a hint popover */
+    readonly tooltip: string | undefined
+    /** Whether the checkbox is currently checked */
+    readonly isChecked: boolean
+    /** Change handler for the checkbox */
+    readonly onChange: (isChecked: boolean) => void
+}
+
+/**
+ * Opens a hint popover anchored to its trigger if it is not already visible.
+ * @param popoverId - The ID of the popover to open
+ * @param source - The element used as the popover anchor
+ */
+function showHintPopover(popoverId: string, source: HTMLElement) {
+    const popover = document.getElementById(popoverId)
+    if (popover && !popover.matches(':popover-open')) {
+        popover.showPopover({ source })
+    }
+}
+
+/**
+ * Closes a hint popover if it is currently visible.
+ * @param popoverId - The ID of the popover to close
+ */
+function hideHintPopover(popoverId: string) {
+    const popover = document.getElementById(popoverId)
+    if (popover?.matches(':popover-open')) {
+        popover.hidePopover()
+    }
+}
+
+/**
+ * Checkbox filter with an optional hover/focus hint popover.
+ * @param props - Component props
+ * @param props.id - Unique identifier for the checkbox and tooltip
+ * @param props.label - Label displayed next to the checkbox
+ * @param props.tooltip - Optional tooltip content displayed in a hint popover
+ * @param props.isChecked - Whether the checkbox is currently checked
+ * @param props.onChange - Change handler for the checkbox
+ * @returns Checkbox filter input and optional tooltip trigger.
+ */
+function FilterCheckboxInput({ id, label, tooltip, isChecked, onChange }: FilterCheckboxInputProps) {
+    const popoverId = `${id}-hint`
+
+    return (
+        <div className="flex items-center gap-1.5">
+            <label className="flex items-center gap-2 cursor-pointer group">
+                <input
+                    aria-describedby={tooltip ? popoverId : undefined}
+                    checked={isChecked}
+                    className="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-[#D50209] cursor-pointer"
+                    onChange={e => {
+                        onChange(e.target.checked)
+                    }}
+                    type="checkbox"
+                />
+                <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{label}</span>
+            </label>
+            {tooltip && (
+                <>
+                    <button
+                        aria-label={`Show ${label} filter hint`}
+                        // eslint-disable-next-line max-len
+                        className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-700 bg-gray-800 text-xs font-semibold text-gray-400 transition-colors hover:border-brand-500 hover:text-brand-500 focus:outline-none cursor-help"
+                        onBlur={() => {
+                            hideHintPopover(popoverId)
+                        }}
+                        onFocus={e => {
+                            showHintPopover(popoverId, e.currentTarget)
+                        }}
+                        onMouseEnter={e => {
+                            showHintPopover(popoverId, e.currentTarget)
+                        }}
+                        onMouseLeave={() => {
+                            hideHintPopover(popoverId)
+                        }}
+                        popoverTarget={popoverId}
+                        type="button"
+                    >
+                        ?
+                    </button>
+                    <div
+                        // eslint-disable-next-line max-len
+                        className="mx-0 mt-0 mb-2 max-w-xs rounded-xl border border-gray-700 bg-gray-950 p-3 text-xs leading-relaxed text-gray-200 shadow-2xl whitespace-pre-line [position-area:top] backdrop:bg-transparent"
+                        id={popoverId}
+                        popover="hint"
+                        role="tooltip"
+                    >
+                        {tooltip}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
+
 // ── ArchiveFilters ────────────────────────────────────────────────────────────
 
 interface ArchiveFiltersProps {
@@ -232,7 +336,7 @@ export default function ArchiveFilters({ shows, query, onQueryChange, defaultOpe
                         />
                     </svg>
                 </button>
-                <h2 className="hidden sm:block text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</h2>
+                <p className="hidden sm:block text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</p>
                 <button
                     // eslint-disable-next-line max-len
                     className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 cursor-pointer disabled:text-stone-600 disabled:hover:bg-transparent disabled:cursor-not-allowed"
@@ -356,21 +460,16 @@ export default function ArchiveFilters({ shows, query, onQueryChange, defaultOpe
                     {/* Secondary filters */}
                     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 border-t border-gray-800/50">
                         {CHECKBOX_FILTERS.map(({ key, label, tooltip }) => (
-                            <label
-                                className="flex items-center gap-2 cursor-pointer group"
+                            <FilterCheckboxInput
+                                id={`filter-${key}`}
+                                isChecked={query[key]}
                                 key={key}
-                                title={tooltip}
-                            >
-                                <input
-                                    checked={query[key]}
-                                    className="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-[#D50209] cursor-pointer"
-                                    onChange={e => {
-                                        patch(key, e.target.checked)
-                                    }}
-                                    type="checkbox"
-                                />
-                                <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{label}</span>
-                            </label>
+                                label={label}
+                                onChange={isChecked => {
+                                    patch(key, isChecked)
+                                }}
+                                tooltip={tooltip}
+                            />
                         ))}
 
                         <div className="ml-auto flex items-center gap-2">

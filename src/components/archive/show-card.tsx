@@ -266,9 +266,9 @@ const ShowCard = memo(function ShowCard({
                         ) : (
                             <UnknownFlag />
                         )}
-                        <h3 className="font-semibold text-gray-100 leading-snug flex-1 min-w-0 truncate">
+                        <h2 className="font-semibold text-gray-100 leading-snug flex-1 min-w-0 truncate">
                             {show.city || show.country || 'Unknown'}
-                        </h3>
+                        </h2>
                         {year && (
                             <span className="text-xs font-bold text-brand-400 bg-brand-500/15 border border-brand-500/30 px-2 py-0.5 rounded-full shrink-0">
                                 {year}
