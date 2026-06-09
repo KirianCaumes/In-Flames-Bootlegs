@@ -232,6 +232,9 @@ function FilterCheckboxInput({ id, label, tooltip, isChecked, onChange }: Filter
                         onBlur={() => {
                             hideHintPopover(popoverId)
                         }}
+                        onClick={e => {
+                            showHintPopover(popoverId, e.currentTarget)
+                        }}
                         onFocus={e => {
                             showHintPopover(popoverId, e.currentTarget)
                         }}
@@ -241,7 +244,6 @@ function FilterCheckboxInput({ id, label, tooltip, isChecked, onChange }: Filter
                         onMouseLeave={() => {
                             hideHintPopover(popoverId)
                         }}
-                        popoverTarget={popoverId}
                         type="button"
                     >
                         ?
@@ -351,10 +353,9 @@ export default function ArchiveFilters({ shows, query, onQueryChange, defaultOpe
             </div>
 
             <div
-                className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-                style={{ gridTemplateRows: areFiltersOpen ? '1fr' : '0fr' }}
+                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out lg:!max-h-none ${areFiltersOpen ? 'max-h-[1200px]' : 'max-h-0'}`}
             >
-                <div className="overflow-hidden mt-2">
+                <div className="space-y-4 mt-2">
                     {/* Primary filters */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                         {/* Year */}
