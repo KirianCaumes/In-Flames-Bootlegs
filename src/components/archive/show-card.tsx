@@ -246,7 +246,7 @@ const ShowCard = memo(function ShowCard({
                                 onLoad={() => {
                                     setThumbStatus('resolved')
                                 }}
-                                sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1279px) 33vw, 25vw"
+                                sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1279px) 33vw, 296px"
                                 src={buildShowThumbnailPath(show, date ?? '-')}
                             />
                         )}
