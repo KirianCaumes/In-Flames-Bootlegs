@@ -5,7 +5,10 @@ import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import ArchiveFilters from 'components/archive/archive-filters'
 import ShowCard from 'components/archive/show-card'
+import ShowTimeline from 'components/archive/show-timeline'
+import ViewToggle from 'components/archive/view-toggle'
 import { applyArchiveQuery, DEFAULT_ARCHIVE_QUERY, parseArchiveQuery, serializeArchiveQuery, type ArchiveQuery } from 'lib/archive/query'
+import { DEFAULT_ARCHIVE_VIEW, parseArchiveView, type ArchiveView } from 'lib/archive/view'
 // eslint-disable-next-line no-restricted-imports
 import IconSvg from '../../../public/favicon.svg'
 import type { ArchiveShow } from 'lib/archive/shows'
@@ -31,8 +34,23 @@ export default function ArchivePage({
     const router = useRouter()
     const pathname = usePathname()
     const [query, setQuery] = useState<ArchiveQuery>(() => parseArchiveQuery(searchParams))
+    const [view, setView] = useState<ArchiveView>(() => parseArchiveView(searchParams))
     const deferredQuery = useDeferredValue(query)
     const isStale = query !== deferredQuery
+
+    /**
+     * Syncs the current query and view to the URL.
+     * @param nextQuery - Filter values to serialize.
+     * @param nextView - View to serialize.
+     */
+    function syncUrl(nextQuery: ArchiveQuery, nextView: ArchiveView) {
+        const params = new URLSearchParams(serializeArchiveQuery(nextQuery))
+        if (nextView !== DEFAULT_ARCHIVE_VIEW) {
+            params.set('view', nextView)
+        }
+        const qs = params.toString()
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }
 
     /**
      * Updates filters state and syncs the new filter values to the URL.
@@ -40,11 +58,20 @@ export default function ArchivePage({
      */
     function handleQueryChange(next: ArchiveQuery) {
         setQuery(next)
-        const qs = serializeArchiveQuery(next)
-        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+        syncUrl(next, view)
+    }
+
+    /**
+     * Updates the display view and syncs it to the URL.
+     * @param next - New view to apply.
+     */
+    function handleViewChange(next: ArchiveView) {
+        setView(next)
+        syncUrl(query, next)
     }
 
     const filtered = useMemo(() => applyArchiveQuery(shows, deferredQuery), [shows, deferredQuery])
+    const resultsLabel = filtered.length === shows.length ? `${shows.length} shows` : `${filtered.length} of ${shows.length} shows`
 
     return (
         <>
@@ -90,12 +117,12 @@ export default function ArchivePage({
                 />
 
                 {/* Results bar */}
-                <div className="flex items-center justify-between mb-4 min-h-[1.5rem]">
-                    {filtered.length > 0 && (
-                        <p className="text-sm text-gray-400">
-                            {filtered.length === shows.length ? `${shows.length} shows` : `${filtered.length} of ${shows.length} shows`}
-                        </p>
-                    )}
+                <div className="flex items-center justify-between gap-4 mb-4 min-h-[2rem]">
+                    <p className="text-sm text-gray-400">{filtered.length > 0 ? resultsLabel : ''}</p>
+                    <ViewToggle
+                        onViewChange={handleViewChange}
+                        view={view}
+                    />
                 </div>
 
                 {/* Empty state */}
@@ -127,20 +154,23 @@ export default function ArchivePage({
                     </div>
                 )}
 
-                {/* Grid */}
+                {/* Results */}
                 {filtered.length > 0 && (
-                    <div
-                        // eslint-disable-next-line max-len
-                        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-150 ${isStale ? 'opacity-50' : 'opacity-100'}`}
-                    >
-                        {filtered.map((show, i) => (
-                            <ShowCard
-                                imageLoading={i < 4 ? 'eager' : 'lazy'}
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`${show.id}-${i}`}
-                                show={show}
-                            />
-                        ))}
+                    <div className={`transition-opacity duration-150 ${isStale ? 'opacity-50' : 'opacity-100'}`}>
+                        {view === 'timeline' ? (
+                            <ShowTimeline shows={filtered} />
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {filtered.map((show, i) => (
+                                    <ShowCard
+                                        imageLoading={i < 4 ? 'eager' : 'lazy'}
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`${show.id}-${i}`}
+                                        show={show}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

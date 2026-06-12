@@ -79,6 +79,22 @@ export function getArchiveShowYear(show: ArchiveShow): number | null {
 }
 
 /**
+ * Format an archive show's date for display.
+ * @param show - Show to format the date for.
+ * @returns Formatted date, or 'Unknown date' when unavailable.
+ */
+export function getArchiveShowDateDisplay(show: ArchiveShow): string {
+    if (!show.date) {
+        return 'Unknown date'
+    }
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    }).format(show.date)
+}
+
+/**
  * Normalize a raw Google Sheet row into an archive show.
  * @param row - Raw row keyed by headers.
  * @returns Normalized archive show.
