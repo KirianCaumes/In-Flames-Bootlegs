@@ -36,7 +36,8 @@ export default function ArchivePage({
     const [query, setQuery] = useState<ArchiveQuery>(() => parseArchiveQuery(searchParams))
     const [view, setView] = useState<ArchiveView>(() => parseArchiveView(searchParams))
     const deferredQuery = useDeferredValue(query)
-    const isStale = query !== deferredQuery
+    const deferredView = useDeferredValue(view)
+    const isStale = query !== deferredQuery || view !== deferredView
 
     /**
      * Syncs the current query and view to the URL.
@@ -157,20 +158,23 @@ export default function ArchivePage({
                 {/* Results */}
                 {filtered.length > 0 && (
                     <div className={`transition-opacity duration-150 ${isStale ? 'opacity-50' : 'opacity-100'}`}>
-                        {view === 'timeline' ? (
-                            <ShowTimeline shows={filtered} />
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {filtered.map((show, i) => (
-                                    <ShowCard
-                                        imageLoading={i < 4 ? 'eager' : 'lazy'}
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        key={`${show.id}-${i}`}
-                                        show={show}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        {
+                            {
+                                timeline: <ShowTimeline shows={filtered} />,
+                                grid: (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                                        {filtered.map((show, i) => (
+                                            <ShowCard
+                                                imageLoading={i < 4 ? 'eager' : 'lazy'}
+                                                // eslint-disable-next-line react/no-array-index-key
+                                                key={`${show.id}-${i}`}
+                                                show={show}
+                                            />
+                                        ))}
+                                    </div>
+                                ),
+                            }[deferredView]
+                        }
                     </div>
                 )}
             </main>
