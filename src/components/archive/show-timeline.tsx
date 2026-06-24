@@ -25,8 +25,8 @@ export default function ShowTimeline({
                 <section key={group.year}>
                     {/* Year header */}
                     <div className="sticky top-[5.5rem] z-20 -mx-4 mb-4 flex items-center gap-3 bg-gray-950/90 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6">
-                        <span className="text-2xl font-bold text-brand-500 tabular-nums tracking-wide">{group.year}</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-2xl font-display font-bold text-brand-500 tabular-nums tracking-wide">{group.year}</span>
+                        <span className="text-xs text-gray-500 font-mono">
                             {group.shows.length} {group.shows.length === 1 ? 'show' : 'shows'}
                         </span>
                         <div className="flex-1 h-px bg-gradient-to-r from-gray-800 to-transparent" />

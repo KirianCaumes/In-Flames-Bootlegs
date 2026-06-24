@@ -1,9 +1,28 @@
 @import 'tailwindcss';
 
 @theme {
+    /* Charcoal — neutral near-black ramp (no temperature cast), overrides Tailwind's cool default gray */
+    --color-gray-50: #f7f7f7;
+    --color-gray-100: #efefef; /* primary text */
+    --color-gray-200: #dedede;
+    --color-gray-300: #c2c2c2;
+    --color-gray-400: #8f8f8f; /* primary secondary text */
+    --color-gray-500: #5c5c5c; /* dividers / subtle icons */
+    --color-gray-600: #404040;
+    --color-gray-700: #2e2e2e; /* borders / inputs */
+    --color-gray-800: #1f1f1f; /* card borders, inputs, badges */
+    --color-gray-900: #141414; /* cards, header, panels */
+    --color-gray-950: #0a0a0a; /* root background, overlays */
+
+    /* Brand red */
     --color-brand-400: #ff4040;
     --color-brand-500: #d50209;
     --color-brand-600: #a80107;
+
+    /* Type roles */
+    --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: var(--font-plex-mono), ui-monospace, 'SFMono-Regular', monospace;
+    --font-display: var(--font-oswald), var(--font-plex-sans), sans-serif;
 }
 
 @layer base {
@@ -12,13 +31,13 @@
         width: 6px;
     }
     ::-webkit-scrollbar-track {
-        background: #111827;
+        background: #141414;
     }
     ::-webkit-scrollbar-thumb {
-        background: #374151;
+        background: #2e2e2e;
         border-radius: 3px;
     }
     ::-webkit-scrollbar-thumb:hover {
-        background: #4b5563;
+        background: #404040;
     }
 }

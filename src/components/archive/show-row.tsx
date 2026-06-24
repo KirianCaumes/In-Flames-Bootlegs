@@ -36,7 +36,7 @@ const ShowRow = memo(function ShowRow({
                     <div className="flex items-center gap-1.5 flex-wrap text-xs text-gray-400">
                         <span>{show.country || 'Unknown'}</span>
                         <span className="text-gray-500">·</span>
-                        <span>{date}</span>
+                        <span className="font-mono">{date}</span>
                     </div>
                     <ShowBadges show={show} />
                     <ShowLinks

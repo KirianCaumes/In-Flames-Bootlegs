@@ -1,10 +1,13 @@
-import { Inter } from 'next/font/google'
+// eslint-disable-next-line camelcase
+import { Oswald, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
 import GdprBanner from 'components/gdpr-banner'
 import type { Metadata } from 'next'
 // eslint-disable-next-line no-restricted-imports
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const plexSans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-plex-sans', display: 'swap' })
+const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex-mono', display: 'swap' })
+const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald', display: 'swap' })
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const metadata: Metadata = {
@@ -54,7 +57,9 @@ export default function RootLayout({
             lang="en"
             suppressHydrationWarning
         >
-            <body className={`${inter.className} bg-gray-950 text-gray-100 min-h-screen`}>
+            <body
+                className={`${plexSans.variable} ${plexMono.variable} ${oswald.variable} font-sans bg-gray-950 text-gray-100 min-h-screen`}
+            >
                 {children}
                 <GdprBanner />
             </body>

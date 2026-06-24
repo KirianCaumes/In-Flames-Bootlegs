@@ -474,7 +474,7 @@ export function Setlist({
                             // eslint-disable-next-line react/no-array-index-key
                             key={i}
                         >
-                            <span className="text-gray-500 w-5 shrink-0 text-right tabular-nums select-none">{i + 1}.</span>
+                            <span className="text-gray-500 w-5 shrink-0 text-right font-mono tabular-nums select-none">{i + 1}.</span>
                             <span className="text-gray-400">{s}</span>
                         </li>
                     ))}

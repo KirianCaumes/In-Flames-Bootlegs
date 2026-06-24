@@ -34,7 +34,7 @@ const ShowCard = memo(function ShowCard({
                 imageLoading={imageLoading}
                 overlay={
                     year ? (
-                        <span className="text-[11px] font-medium text-gray-300 bg-gray-950/60 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                        <span className="text-[11px] font-mono tabular-nums font-medium text-gray-300 bg-gray-950/60 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
                             {year}
                         </span>
                     ) : null
@@ -55,7 +55,7 @@ const ShowCard = memo(function ShowCard({
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-xs text-gray-400">{show.country || 'Unknown'}</span>
                         <span className="text-gray-500 text-xs">·</span>
-                        <span className="text-xs text-gray-400">{date}</span>
+                        <span className="text-xs text-gray-400 font-mono">{date}</span>
                     </div>
                 </div>
 

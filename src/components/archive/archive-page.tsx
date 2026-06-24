@@ -96,12 +96,12 @@ export default function ArchivePage({
                         </button>
                         <div className="w-px h-8 bg-gradient-to-b from-brand-500 to-brand-600 hidden sm:block" />
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-bold tracking-widest uppercase text-brand-500">In Flames</h1>
+                            <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide uppercase text-brand-500">In Flames</h1>
                             <p className="text-gray-400 text-xs sm:text-sm tracking-wide">Bootlegs &amp; Live Shows Archive</p>
                         </div>
                     </div>
                     <div className="text-right shrink-0">
-                        <div className="text-2xl font-bold text-brand-500">{shows.length}</div>
+                        <div className="text-2xl font-display font-bold text-brand-500 tabular-nums">{shows.length}</div>
                         <div className="text-xs text-gray-400">shows archived</div>
                     </div>
                 </div>
