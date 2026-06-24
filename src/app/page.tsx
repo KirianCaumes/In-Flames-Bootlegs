@@ -1,6 +1,9 @@
-import { headers } from 'next/headers'
 import ArchivePage from 'components/archive/archive-page'
+import StructuredData from 'components/structured-data'
 import { fetchArchiveShows } from 'lib/archive/shows'
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const dynamic = 'force-dynamic'
 
 /**
  * Root page of the In-Flames bootleg archive.
@@ -13,13 +16,11 @@ export default async function Page() {
         console.error('Error fetching archive shows:', error)
         return [] as Awaited<ReturnType<typeof fetchArchiveShows>>
     })
-    const ua = (await headers()).get('user-agent') ?? ''
-    const device = /mobile|android|iphone|ipad|ipod/i.test(ua) ? 'mobile' : 'desktop'
 
     return (
-        <ArchivePage
-            device={device}
-            shows={shows}
-        />
+        <>
+            <StructuredData shows={shows} />
+            <ArchivePage shows={shows} />
+        </>
     )
 }

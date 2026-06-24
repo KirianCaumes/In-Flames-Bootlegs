@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { flagUrl } from 'lib/archive/flags'
 import { buildArchiveFacets, DEFAULT_ARCHIVE_QUERY, isArchiveQueryActive, patchArchiveQuery } from 'lib/archive/query'
@@ -272,32 +272,17 @@ interface ArchiveFiltersProps {
     readonly query: ArchiveQuery
     /** Callback when query changes */
     readonly onQueryChange: (query: ArchiveQuery) => void
-    /** Whether the filter panel is open by default (server-detected from User-Agent) */
-    readonly defaultOpen: boolean
 }
 
 /**
  * Filter panel for the archive page.
  * Renders year/country/city/song selectors, checkbox toggles, and sort order.
+ * The panel collapses behind a toggle on mobile and is always expanded from the `sm` breakpoint up
+ * (handled purely in CSS so it works without JS and keeps the page statically renderable).
  * @returns Filter UI for refining the list of shows displayed in the archive.
  */
-export default function ArchiveFilters({ shows, query, onQueryChange, defaultOpen }: ArchiveFiltersProps) {
-    const [areFiltersOpen, setAreFiltersOpen] = useState(defaultOpen)
-
-    // Open filters by default on desktop
-    useEffect(() => {
-        const handleResize = () => {
-            const isDesktop = window.matchMedia('(min-width: 640px)').matches
-            if (isDesktop && !areFiltersOpen) {
-                setAreFiltersOpen(true)
-            }
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => {
-            window.removeEventListener('resize', handleResize)
-        }
-    }, [areFiltersOpen])
+export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveFiltersProps) {
+    const [areFiltersOpen, setAreFiltersOpen] = useState(false)
 
     const facets = useMemo(() => buildArchiveFacets(shows), [shows])
 
@@ -353,7 +338,7 @@ export default function ArchiveFilters({ shows, query, onQueryChange, defaultOpe
             </div>
 
             <div
-                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out lg:!max-h-none ${areFiltersOpen ? 'max-h-[1200px]' : 'max-h-0'}`}
+                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out sm:max-h-none! ${areFiltersOpen ? 'max-h-[1200px]' : 'max-h-0'}`}
             >
                 <div className="space-y-4 mt-2">
                     {/* Primary filters */}

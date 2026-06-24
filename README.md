@@ -37,10 +37,10 @@ npm install
 Create a `.env.local` file at the root of the project:
 
 ```env
-# Required — URL of the Google Sheet exported as CSV
+# Required - URL of the Google Sheet exported as CSV
 GOOGLE_SHEET_URL=https://sheets.googleapis.com/v4/spreadsheets/<id>/values/<range>
 
-# Required — API key (for playlist thumbnail and sheet)
+# Required - API key (for playlist thumbnail and sheet)
 GOOGLE_API_KEY=your_api_key_here
 ```
 

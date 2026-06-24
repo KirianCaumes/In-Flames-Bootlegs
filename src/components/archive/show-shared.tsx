@@ -1,9 +1,10 @@
 'use client'
 
-import { useId, useState, type ComponentProps, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import { trackBootlegClick } from 'lib/archive/analytics'
 import { flagUrl } from 'lib/archive/flags'
+import { getArchiveShowImageAlt } from 'lib/archive/shows'
 import { buildShowThumbnailPath } from 'lib/archive/thumbnails'
 import type { ArchiveShow } from 'lib/archive/shows'
 
@@ -342,7 +343,7 @@ export function CommentPopover({
 export function ShowThumbnail({
     show,
     date,
-    imageLoading = 'lazy',
+    priority = false,
     className = 'h-36',
     sizes,
     overlay = null,
@@ -351,8 +352,8 @@ export function ShowThumbnail({
     readonly show: ArchiveShow
     /** Formatted date used for the thumbnail path and alt text. */
     readonly date: string | null
-    /** Image loading strategy. */
-    readonly imageLoading?: ComponentProps<typeof Image>['loading']
+    /** Whether to eagerly load and preload this image (set only for the first/LCP card). */
+    readonly priority?: boolean
     /** Classes controlling the thumbnail box size. */
     readonly className?: string
     /** Responsive sizes attribute for the image. */
@@ -361,11 +362,12 @@ export function ShowThumbnail({
     readonly overlay?: ReactNode
 }) {
     const [thumbStatus, setThumbStatus] = useState<'error' | 'resolved' | undefined>()
+    const alt = getArchiveShowImageAlt(show)
 
     return (
         <div className={`${className} relative overflow-hidden bg-gray-900 shrink-0`}>
             <a
-                aria-label={`Watch In Flames - ${show.city} ${show.country} - ${date ?? '-'}`}
+                aria-label={`Watch ${alt}`}
                 className="block h-full group relative"
                 href={show.mediaLink}
                 onClick={() => {
@@ -377,18 +379,20 @@ export function ShowThumbnail({
                 <DefaultThumbnail />
                 {show.mediaLink && thumbStatus !== 'error' && (
                     <Image
-                        alt={`In Flames - ${show.city} ${show.country} - ${date ?? '-'}`}
+                        alt={alt}
+                        // The thumb-image class lets a <noscript> style force opacity:1 when JS is disabled.
+                        // Without hydration the onLoad handler that clears opacity-0 never fires.
                         // eslint-disable-next-line max-len
-                        className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300 text-transparent${thumbStatus === 'resolved' ? '' : ' opacity-0'}`}
-                        fetchPriority={imageLoading === 'eager' ? 'high' : 'auto'}
+                        className={`thumb-image absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300 text-transparent${thumbStatus === 'resolved' ? '' : ' opacity-0'}`}
                         fill
-                        loading={imageLoading}
+                        loading={priority ? 'eager' : 'lazy'}
                         onError={() => {
                             setThumbStatus('error')
                         }}
                         onLoad={() => {
                             setThumbStatus('resolved')
                         }}
+                        priority={priority}
                         sizes={sizes}
                         src={buildShowThumbnailPath(show, date ?? '-')}
                     />

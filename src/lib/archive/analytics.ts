@@ -53,5 +53,5 @@ export function trackEvent(eventName: string, params?: Record<string, string | n
  * @returns Display date.
  */
 function formatAnalyticsDate(show: ArchiveShow): string {
-    return show.date ? dateFormatter.format(show.date) : '—'
+    return show.date ? dateFormatter.format(show.date) : '-'
 }

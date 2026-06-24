@@ -2,7 +2,7 @@
 
 import { useDeferredValue, useMemo, useState } from 'react'
 import Image from 'next/image'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import ArchiveFilters from 'components/archive/archive-filters'
 import ShowCard from 'components/archive/show-card'
 import ShowTimeline from 'components/archive/show-timeline'
@@ -23,15 +23,11 @@ import type { ArchiveShow } from 'lib/archive/shows'
  */
 export default function ArchivePage({
     shows,
-    device,
 }: {
     /** Shows to display and filter */
     readonly shows: Array<ArchiveShow>
-    /** Detected device type for responsive behavior */
-    readonly device: 'mobile' | 'desktop'
 }) {
     const searchParams = useSearchParams()
-    const router = useRouter()
     const pathname = usePathname()
     const [query, setQuery] = useState<ArchiveQuery>(() => parseArchiveQuery(searchParams))
     const [view, setView] = useState<ArchiveView>(() => parseArchiveView(searchParams))
@@ -50,7 +46,7 @@ export default function ArchivePage({
             params.set('view', nextView)
         }
         const qs = params.toString()
-        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+        window.history.replaceState(null, '', qs ? `${pathname}?${qs}` : pathname)
     }
 
     /**
@@ -81,6 +77,7 @@ export default function ArchivePage({
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <button
+                            aria-label="Scroll to top"
                             className="cursor-pointer"
                             onClick={() => {
                                 window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -88,16 +85,21 @@ export default function ArchivePage({
                             type="button"
                         >
                             <Image
-                                alt="Bootlegs Archive"
+                                alt=""
                                 className="w-14 h-14 object-cover shrink-0"
-                                loading="eager"
                                 src={IconSvg as string}
                             />
                         </button>
                         <div className="w-px h-8 bg-gradient-to-b from-brand-500 to-brand-600 hidden sm:block" />
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide uppercase text-brand-500">In Flames</h1>
-                            <p className="text-gray-400 text-xs sm:text-sm tracking-wide">Bootlegs &amp; Live Shows Archive</p>
+                            <h1 className="leading-tight">
+                                <span className="block text-xl sm:text-2xl font-display font-bold tracking-wide uppercase text-brand-500">
+                                    In Flames
+                                </span>
+                                <span className="block text-gray-400 text-xs sm:text-sm tracking-wide font-normal">
+                                    Bootlegs &amp; Live Shows Archive
+                                </span>
+                            </h1>
                         </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -108,10 +110,14 @@ export default function ArchivePage({
             </header>
 
             {/* ── Main ───────────────────────────────────────────────────────────── */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+            <main
+                className="max-w-7xl mx-auto px-4 sm:px-6 py-6"
+                id="main-content"
+                tabIndex={-1}
+            >
+                <h2 className="sr-only">Browse the In Flames live show &amp; bootleg archive</h2>
                 {/* Filters */}
                 <ArchiveFilters
-                    defaultOpen={device === 'desktop'}
                     onQueryChange={handleQueryChange}
                     query={query}
                     shows={shows}
@@ -165,9 +171,9 @@ export default function ArchivePage({
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {filtered.map((show, i) => (
                                             <ShowCard
-                                                imageLoading={i < 4 ? 'eager' : 'lazy'}
                                                 // eslint-disable-next-line react/no-array-index-key
                                                 key={`${show.id}-${i}`}
+                                                priority={i === 0}
                                                 show={show}
                                             />
                                         ))}
@@ -182,11 +188,14 @@ export default function ArchivePage({
             {/* ── Footer ─────────────────────────────────────────────────────────── */}
             <footer className="border-t border-gray-800/50 mt-12 py-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center gap-4">
-                    <div className="flex flex-wrap justify-center gap-3">
+                    <nav
+                        aria-label="Archive actions"
+                        className="flex flex-wrap justify-center gap-3"
+                    >
                         <a
                             // eslint-disable-next-line max-len
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-gray-400 border border-gray-800 hover:border-brand-500/40 hover:text-brand-500 transition-colors"
-                            href={`mailto:ajesterscollection@gmail.com?subject=${encodeURIComponent('Dead link — In Flames Archive')}`}
+                            href={`mailto:ajesterscollection@gmail.com?subject=${encodeURIComponent('Dead link - In Flames Archive')}`}
                         >
                             <svg
                                 className="w-4 h-4"
@@ -207,7 +216,7 @@ export default function ArchivePage({
                         <a
                             // eslint-disable-next-line max-len
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-gray-400 border border-gray-800 hover:border-brand-500/40 hover:text-brand-500 transition-colors"
-                            href={`mailto:ajesterscollection@gmail.com?subject=${encodeURIComponent('New show suggestion — In Flames Archive')}`}
+                            href={`mailto:ajesterscollection@gmail.com?subject=${encodeURIComponent('New show suggestion - In Flames Archive')}`}
                         >
                             <svg
                                 className="w-4 h-4"
@@ -224,7 +233,7 @@ export default function ArchivePage({
                             </svg>
                             Suggest a new show
                         </a>
-                    </div>
+                    </nav>
                     <p className="text-gray-400 text-xs">
                         Non-commercial fan archive. All recordings and trademarks belong to their respective owners.
                     </p>

@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
-    /* Charcoal — neutral near-black ramp (no temperature cast), overrides Tailwind's cool default gray */
+    /* Charcoal - neutral near-black ramp (no temperature cast), overrides Tailwind's cool default gray */
     --color-gray-50: #f7f7f7;
     --color-gray-100: #efefef; /* primary text */
     --color-gray-200: #dedede;

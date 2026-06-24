@@ -28,15 +28,21 @@ const ShowRow = memo(function ShowRow({
                     sizes="(max-width: 639px) 160px, 224px"
                 />
                 <div className="flex flex-col gap-2 min-w-0 flex-1">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <ShowFlag country={show.country} />
-                        <h2 className="font-semibold text-gray-100 leading-snug truncate">{show.city || show.country || 'Unknown'}</h2>
+                    <div className="flex items-start gap-2 min-w-0">
+                        <h3 className="flex-1 min-w-0">
+                            <span className="flex items-center gap-2 min-w-0">
+                                <ShowFlag country={show.country} />
+                                <span className="min-w-0 truncate font-semibold text-gray-100 leading-snug">
+                                    {show.city || show.country || 'Unknown'}
+                                </span>
+                            </span>
+                            <span className="mt-1 flex items-center gap-1.5 flex-wrap text-xs font-normal text-gray-400">
+                                <span>{show.country || 'Unknown'}</span>
+                                <span className="text-gray-500">·</span>
+                                <span className="font-mono">{date}</span>
+                            </span>
+                        </h3>
                         <CommentPopover comment={show.comment} />
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap text-xs text-gray-400">
-                        <span>{show.country || 'Unknown'}</span>
-                        <span className="text-gray-500">·</span>
-                        <span className="font-mono">{date}</span>
                     </div>
                     <ShowBadges show={show} />
                     <ShowLinks

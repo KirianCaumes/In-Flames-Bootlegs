@@ -9,32 +9,29 @@ const plexSans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600
 const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex-mono', display: 'swap' })
 const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald', display: 'swap' })
 
+const META_DESCRIPTION =
+    // eslint-disable-next-line max-len
+    'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Swedish roots all the way to today.'
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const metadata: Metadata = {
     title: 'In Flames - Bootlegs & Live Shows Archive',
     metadataBase: new URL('https://in-flames-bootlegs.kiriancaumes.fr'),
-    description:
-        // eslint-disable-next-line max-len
-        'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
+    description: META_DESCRIPTION,
     keywords: ['In Flames', 'bootleg', 'live show', 'concert', 'recording', 'archive', 'setlist', 'live recording'],
     authors: [{ name: "A Jester's Collection", url: 'https://jesterscollection.kiriancaumes.fr/' }],
     creator: "A Jester's Collection",
+    alternates: { canonical: '/' },
     robots: { index: true, follow: true },
     openGraph: {
         type: 'website',
         title: 'In Flames - Bootlegs & Live Shows Archive',
-        description:
-            // eslint-disable-next-line max-len
-            'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
-        images: [{ url: '/favicon.png', width: 313, height: 313, alt: 'In Flames' }],
+        description: META_DESCRIPTION,
     },
     twitter: {
-        card: 'summary',
+        card: 'summary_large_image',
         title: 'In Flames - Bootlegs & Live Shows Archive',
-        description:
-            // eslint-disable-next-line max-len
-            'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Gothenburg roots all the way to today.',
-        images: ['/favicon.png'],
+        description: META_DESCRIPTION,
     },
     icons: {
         icon: '/favicon.svg',
@@ -60,6 +57,10 @@ export default function RootLayout({
             <body
                 className={`${plexSans.variable} ${plexMono.variable} ${oswald.variable} font-sans bg-gray-950 text-gray-100 min-h-screen`}
             >
+                {/* Thumbnails fade in via an onLoad handler; with JS disabled that never fires, so reveal them here. */}
+                <noscript>
+                    <style>{`.thumb-image{opacity:1 !important}`}</style>
+                </noscript>
                 {children}
                 <GdprBanner />
             </body>

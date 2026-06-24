@@ -1,9 +1,8 @@
 'use client'
 
-import { memo, type ComponentProps } from 'react'
+import { memo } from 'react'
 import { getArchiveShowDateDisplay, getArchiveShowYear } from 'lib/archive/shows'
 import { CommentPopover, Setlist, ShowBadges, ShowFlag, ShowLinks, ShowThumbnail } from 'components/archive/show-shared'
-import type Image from 'next/image'
 import type { ArchiveShow } from 'lib/archive/shows'
 
 // ── ShowCard ──────────────────────────────────────────────────────────────────
@@ -15,13 +14,13 @@ import type { ArchiveShow } from 'lib/archive/shows'
  */
 const ShowCard = memo(function ShowCard({
     show,
-    imageLoading = 'lazy',
+    priority = false,
 }: {
     /** Show data to display */
     readonly show: ArchiveShow
-    /** Image loading strategy, defaults to 'lazy' */
+    /** Whether to eagerly load and preload the thumbnail (set only for the first/LCP card) */
     // eslint-disable-next-line react/require-default-props
-    readonly imageLoading?: ComponentProps<typeof Image>['loading']
+    readonly priority?: boolean
 }) {
     const year = getArchiveShowYear(show)
     const date = getArchiveShowDateDisplay(show)
@@ -31,7 +30,6 @@ const ShowCard = memo(function ShowCard({
             <ShowThumbnail
                 className="h-36 border-b border-gray-800"
                 date={date}
-                imageLoading={imageLoading}
                 overlay={
                     year ? (
                         <span className="text-[11px] font-mono tabular-nums font-medium text-gray-300 bg-gray-950/60 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
@@ -39,24 +37,27 @@ const ShowCard = memo(function ShowCard({
                         </span>
                     ) : null
                 }
+                priority={priority}
                 show={show}
                 sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1279px) 33vw, 296px"
             />
             <div className="p-4 flex flex-col gap-3 flex-1">
                 {/* Location */}
-                <div>
-                    <div className="flex items-center gap-2 mb-1 min-w-0">
-                        <ShowFlag country={show.country} />
-                        <h2 className="font-semibold text-gray-100 leading-snug flex-1 min-w-0 truncate">
-                            {show.city || show.country || 'Unknown'}
-                        </h2>
-                        <CommentPopover comment={show.comment} />
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs text-gray-400">{show.country || 'Unknown'}</span>
-                        <span className="text-gray-500 text-xs">·</span>
-                        <span className="text-xs text-gray-400 font-mono">{date}</span>
-                    </div>
+                <div className="flex items-start gap-2 min-w-0">
+                    <h3 className="flex-1 min-w-0">
+                        <span className="flex items-center gap-2 min-w-0">
+                            <ShowFlag country={show.country} />
+                            <span className="min-w-0 truncate font-semibold text-gray-100 leading-snug">
+                                {show.city || show.country || 'Unknown'}
+                            </span>
+                        </span>
+                        <span className="mt-1 flex items-center gap-1.5 flex-wrap text-xs font-normal text-gray-400">
+                            <span>{show.country || 'Unknown'}</span>
+                            <span className="text-gray-500">·</span>
+                            <span className="font-mono">{date}</span>
+                        </span>
+                    </h3>
+                    <CommentPopover comment={show.comment} />
                 </div>
 
                 {/* Badges */}

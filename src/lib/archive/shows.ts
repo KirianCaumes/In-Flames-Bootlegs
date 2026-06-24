@@ -95,6 +95,42 @@ export function getArchiveShowDateDisplay(show: ArchiveShow): string {
 }
 
 /**
+ * Build a human-readable "City, Country" location for a show, gracefully dropping missing parts.
+ * @param show - Show to read.
+ * @returns Location string, or 'Unknown location' when both city and country are missing.
+ */
+export function getArchiveShowLocation(show: ArchiveShow): string {
+    const parts = [show.city, show.country].filter(Boolean)
+    return parts.length > 0 ? parts.join(', ') : 'Unknown location'
+}
+
+/**
+ * Build descriptive alt text for a show thumbnail, e.g. "In Flames live in Gothenburg, Sweden - Jun 24, 1994".
+ * @param show - Show to describe.
+ * @returns Descriptive alt text.
+ */
+export function getArchiveShowImageAlt(show: ArchiveShow): string {
+    const date = getArchiveShowDateDisplay(show)
+    const datePart = show.date ? ` - ${date}` : ''
+    return `In Flames live in ${getArchiveShowLocation(show)}${datePart}`
+}
+
+/**
+ * Format a show's date as an ISO calendar date (YYYY-MM-DD) using local parts to avoid timezone drift.
+ * @param show - Show to read.
+ * @returns ISO date string, or null when the date is unavailable.
+ */
+export function getArchiveShowIsoDate(show: ArchiveShow): string | null {
+    if (!show.date) {
+        return null
+    }
+    const year = show.date.getFullYear()
+    const month = String(show.date.getMonth() + 1).padStart(2, '0')
+    const day = String(show.date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
+
+/**
  * Normalize a raw Google Sheet row into an archive show.
  * @param row - Raw row keyed by headers.
  * @returns Normalized archive show.

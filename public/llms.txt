@@ -1,0 +1,28 @@
+# In Flames - Bootlegs & Live Shows Archive
+
+> The most complete community archive of In Flames bootlegs and live recordings: 200+ documented live
+> shows spanning the band's Swedish roots in 1994 all the way to today, across 30+ countries. Each entry
+> links to available video footage (pro-shot, amateur, or full-show) and Setlist.fm pages.
+
+The archive is a single searchable page. Visitors can filter shows by year, country, city, and song in
+the setlist, then sort chronologically. It is a non-commercial fan project; all recordings and
+trademarks belong to their respective owners.
+
+## Key facts
+
+- Artist: In Flames (melodic death metal, formed 1990 in Gothenburg, Sweden)
+- Shows documented: 200+ (1994–2026)
+- Countries covered: 30+
+- Data per show: title, date, city, country, setlist, media link, Setlist.fm link, and footage
+  availability flags (pro-shot, video, full show)
+- Curated by: A Jester's Collection (https://jesterscollection.kiriancaumes.fr/)
+
+## Links
+
+- Archive homepage: https://in-flames-bootlegs.kiriancaumes.fr/
+- Curator's collection: https://jesterscollection.kiriancaumes.fr/
+- Source code: https://github.com/KirianCaumes/In-Flames-Bootlegs
+
+## Contributing
+
+Dead links and new show suggestions can be sent to ajesterscollection@gmail.com.
