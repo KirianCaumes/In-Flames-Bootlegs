@@ -1,4 +1,4 @@
-const RANGE_DATA = 'Live show!A1:K9999'
+const RANGE_DATA = 'Live show!A1:N9999'
 const DELETED_TITLE_PREFIX = '💀'
 
 /** Raw Google Sheet response shape for the bootlegs archive. */
@@ -38,6 +38,12 @@ export interface ArchiveShow {
     readonly city: string
     /** Country where the concert took place. */
     readonly country: string
+    /** Venue where the concert took place. */
+    readonly venue: string
+    /** Festival the concert was part of, when applicable. */
+    readonly festival: string
+    /** Tour the concert belonged to, when applicable. */
+    readonly tour: string
     /** Setlist songs split from the sheet cell. */
     readonly songs: Array<string>
     /** Media availability flags. */
@@ -105,6 +111,15 @@ export function getArchiveShowLocation(show: ArchiveShow): string {
 }
 
 /**
+ * Get the festival-or-venue label for a show: the festival name when set, otherwise the venue name.
+ * @param show - Show to read.
+ * @returns Festival name, venue name, or '' when neither is set.
+ */
+export function getArchiveShowVenue(show: ArchiveShow): string {
+    return show.festival || show.venue
+}
+
+/**
  * Build descriptive alt text for a show thumbnail, e.g. "In Flames live in Gothenburg, Sweden - Jun 24, 1994".
  * @param show - Show to describe.
  * @returns Descriptive alt text.
@@ -145,6 +160,9 @@ function normalizeShow(row: RawShowRow): ArchiveShow {
         date,
         city: row.City ?? '',
         country: row.Country ?? '',
+        venue: row.Venue ?? '',
+        festival: row.Festival ?? '',
+        tour: row.Tour ?? '',
         songs: (row.Setlist ?? '')
             .split('\n')
             .map(song => song.trim())

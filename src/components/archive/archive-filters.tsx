@@ -342,7 +342,7 @@ export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveF
             >
                 <div className="space-y-4 mt-2">
                     {/* Primary filters */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
                         {/* Year */}
                         <div className="flex flex-col gap-1">
                             <label
@@ -428,6 +428,18 @@ export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveF
                             options={facets.cities}
                             placeholder="e.g. Gothenburg"
                             value={query.city}
+                        />
+
+                        <ClearableInput
+                            id="filter-venue"
+                            label="Festival / Venue"
+                            listId="venue-list"
+                            onChange={v => {
+                                patch('venue', v)
+                            }}
+                            options={facets.venues}
+                            placeholder="e.g. Wacken Open Air"
+                            value={query.venue}
                         />
 
                         <ClearableInput

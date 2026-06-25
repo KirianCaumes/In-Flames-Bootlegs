@@ -1,4 +1,4 @@
-import { getArchiveShowYear, type ArchiveShow } from 'lib/archive/shows'
+import { getArchiveShowVenue, getArchiveShowYear, type ArchiveShow } from 'lib/archive/shows'
 
 /** Sort order for archive show dates. */
 export type ArchiveSortOrder = 'date-asc' | 'date-desc'
@@ -11,6 +11,8 @@ export interface ArchiveQuery {
     readonly country: string
     /** City search text. */
     readonly city: string
+    /** Festival/venue search text. */
+    readonly venue: string
     /** Song search text. */
     readonly song: string
     /** Pro shot filter. */
@@ -31,6 +33,8 @@ export interface ArchiveFacets {
     readonly countries: Array<string>
     /** Available cities. */
     readonly cities: Array<string>
+    /** Available festivals/venues. */
+    readonly venues: Array<string>
     /** Available songs. */
     readonly songs: Array<string>
 }
@@ -50,6 +54,7 @@ export const DEFAULT_ARCHIVE_QUERY: ArchiveQuery = {
     year: '',
     country: '',
     city: '',
+    venue: '',
     song: '',
     proshot: false,
     video: false,
@@ -69,6 +74,7 @@ export function parseArchiveQuery(params: ArchiveQueryParams): ArchiveQuery {
         year: params.get('year') ?? DEFAULT_ARCHIVE_QUERY.year,
         country: params.get('country') ?? DEFAULT_ARCHIVE_QUERY.country,
         city: params.get('city') ?? DEFAULT_ARCHIVE_QUERY.city,
+        venue: params.get('venue') ?? DEFAULT_ARCHIVE_QUERY.venue,
         song: params.get('song') ?? DEFAULT_ARCHIVE_QUERY.song,
         proshot: params.get('proshot') === '1',
         video: params.get('video') === '1',
@@ -93,6 +99,9 @@ export function serializeArchiveQuery(query: ArchiveQuery): string {
     }
     if (query.city) {
         params.set('city', query.city)
+    }
+    if (query.venue) {
+        params.set('venue', query.venue)
     }
     if (query.song) {
         params.set('song', query.song)
@@ -149,6 +158,7 @@ export function buildArchiveFacets(shows: Array<ArchiveShow>): ArchiveFacets {
         years: uniqueSorted(shows.map(s => getArchiveShowYear(s)?.toString() ?? null).filter((year): year is string => year !== null)),
         countries: uniqueSorted(shows.map(show => show.country.trim()).filter(Boolean)),
         cities: uniqueSorted(shows.map(show => show.city.trim()).filter(Boolean)),
+        venues: uniqueSorted(shows.map(show => getArchiveShowVenue(show).trim()).filter(Boolean)),
         songs: [...songs.values()].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())),
     }
 }
@@ -159,7 +169,16 @@ export function buildArchiveFacets(shows: Array<ArchiveShow>): ArchiveFacets {
  * @returns True when any non-sort filter is active.
  */
 export function isArchiveQueryActive(query: ArchiveQuery): boolean {
-    return query.year !== '' || query.country !== '' || query.city !== '' || query.song !== '' || query.proshot || query.video || query.full
+    return (
+        query.year !== '' ||
+        query.country !== '' ||
+        query.city !== '' ||
+        query.venue !== '' ||
+        query.song !== '' ||
+        query.proshot ||
+        query.video ||
+        query.full
+    )
 }
 
 /**
@@ -187,6 +206,9 @@ function matchesArchiveQuery(show: ArchiveShow, query: ArchiveQuery): boolean {
         return false
     }
     if (query.city && !show.city.toLowerCase().includes(query.city.toLowerCase())) {
+        return false
+    }
+    if (query.venue && !getArchiveShowVenue(show).toLowerCase().includes(query.venue.toLowerCase())) {
         return false
     }
     if (query.song && !show.songs.some(song => song.toLowerCase().includes(query.song.toLowerCase()))) {

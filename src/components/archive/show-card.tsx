@@ -1,7 +1,7 @@
 'use client'
 
 import { memo } from 'react'
-import { getArchiveShowDateDisplay, getArchiveShowYear } from 'lib/archive/shows'
+import { getArchiveShowDateDisplay, getArchiveShowVenue, getArchiveShowYear } from 'lib/archive/shows'
 import { CommentPopover, Setlist, ShowBadges, ShowFlag, ShowLinks, ShowThumbnail } from 'components/archive/show-shared'
 import type { ArchiveShow } from 'lib/archive/shows'
 
@@ -24,6 +24,8 @@ const ShowCard = memo(function ShowCard({
 }) {
     const year = getArchiveShowYear(show)
     const date = getArchiveShowDateDisplay(show)
+    const venueLabel = getArchiveShowVenue(show)
+    const metaLine = [show.country || 'Unknown', date, venueLabel].filter(Boolean).join(' · ')
 
     return (
         <article className="show-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col">
@@ -51,10 +53,19 @@ const ShowCard = memo(function ShowCard({
                                 {show.city || show.country || 'Unknown'}
                             </span>
                         </span>
-                        <span className="mt-1 flex items-center gap-1.5 flex-wrap text-xs font-normal text-gray-400">
-                            <span>{show.country || 'Unknown'}</span>
-                            <span className="text-gray-500">·</span>
-                            <span className="font-mono">{date}</span>
+                        <span
+                            className="mt-1 flex items-center gap-1.5 text-xs font-normal text-gray-400 min-w-0"
+                            title={metaLine}
+                        >
+                            <span className="shrink-0">{show.country || 'Unknown'}</span>
+                            <span className="text-gray-500 shrink-0">·</span>
+                            <span className="font-mono shrink-0">{date}</span>
+                            {venueLabel && (
+                                <>
+                                    <span className="text-gray-500 shrink-0">·</span>
+                                    <span className="truncate min-w-0">{venueLabel}</span>
+                                </>
+                            )}
                         </span>
                     </h3>
                     <CommentPopover comment={show.comment} />
