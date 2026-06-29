@@ -16,6 +16,29 @@ const ARCHIVE_DESCRIPTION =
     'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Swedish roots all the way to today.'
 
 /**
+ * Build a descriptive, human-readable name for a show's MusicEvent node, derived from
+ * the band, place, and date rather than the raw sheet title.
+ * @param show - Show to name.
+ * @param location - Pre-computed "City, Country" location label.
+ * @returns The event name.
+ */
+function buildEventName(show: ArchiveShow, location: string): string {
+    const venue = getArchiveShowVenue(show)
+    const hasLocation = location !== 'Unknown location'
+
+    let name = 'In Flames'
+    if (venue) {
+        name += ` at ${venue}${hasLocation ? `, ${location}` : ''}`
+    } else if (hasLocation) {
+        name += ` in ${location}`
+    }
+    if (show.date) {
+        name += ` (${getArchiveShowDateDisplay(show)})`
+    }
+    return name
+}
+
+/**
  * Compose a human-readable description for a show's MusicEvent node.
  * @param show - Show to describe.
  * @param location - Pre-computed "City, Country" location label.
@@ -66,7 +89,7 @@ function buildMusicEvent(show: ArchiveShow) {
 
     return {
         '@type': 'MusicEvent',
-        name: show.title || `In Flames - ${location}`,
+        name: buildEventName(show, location),
         description: buildEventDescription(show, location),
         // A historical concert spans a single day, so the start and end dates match.
         ...(isoDate ? { startDate: isoDate, endDate: isoDate } : {}),
