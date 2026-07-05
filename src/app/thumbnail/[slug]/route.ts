@@ -1,4 +1,4 @@
-import { fetchArchiveShows } from 'lib/archive/shows'
+import { fetchArchiveShows } from 'lib/archive/fetch-shows'
 import { proxyThumbnailImage, resolveMediaThumbnail } from 'lib/archive/thumbnails'
 import type { NextRequest } from 'next/server'
 

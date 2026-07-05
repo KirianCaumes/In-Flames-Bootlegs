@@ -1,8 +1,7 @@
-const RANGE_DATA = 'Live show!A1:N9999'
 const DELETED_TITLE_PREFIX = '💀'
 
 /** Raw Google Sheet response shape for the bootlegs archive. */
-interface GoogleApiResponse {
+export interface GoogleApiResponse {
     /** Range returned by Google Sheets. */
     range: string
     /** Major dimension returned by Google Sheets. */
@@ -28,10 +27,6 @@ export interface ShowAvailability {
 export interface ArchiveShow {
     /** Stable identifier base on the timestamp. */
     readonly id: number
-    /** Concert title/name. */
-    readonly title: string
-    /** Original date text from the Google Sheet. */
-    readonly dateText: string
     /** Parsed show date, or null when the sheet value is invalid. */
     readonly date: Date | null
     /** City where the concert took place. */
@@ -155,8 +150,6 @@ function normalizeShow(row: RawShowRow): ArchiveShow {
     const date = parseArchiveDate(dateText)
     return {
         id: date ? date.getTime() : 0,
-        title: row.Title ?? '',
-        dateText,
         date,
         city: row.City ?? '',
         country: row.Country ?? '',
@@ -192,35 +185,9 @@ export function parseArchiveShows(raw: GoogleApiResponse): Array<ArchiveShow> {
     const headers = rows[0].map(header => header.trim())
     return rows
         .slice(1)
+        .filter(row => row[0] && !row[0].startsWith(DELETED_TITLE_PREFIX))
         .map(row => {
             const rawRow = Object.fromEntries(headers.map((header, rowIndex) => [header, (row[rowIndex] ?? '').trim()]))
             return normalizeShow(rawRow)
         })
-        .filter(show => show.title && !show.title.startsWith(DELETED_TITLE_PREFIX))
-}
-
-/**
- * Fetch normalized archive shows from the Google Sheet.
- * @param range Display range to fetch.
- * @returns Promise resolving to all archive shows.
- */
-export async function fetchArchiveShows(range = RANGE_DATA): Promise<Array<ArchiveShow>> {
-    const sheetId = process.env.GOOGLE_SHEET_ID
-    const apiKey = process.env.GOOGLE_API_KEY
-    if (!sheetId || !apiKey) {
-        throw new Error('Missing Google Sheets configuration')
-    }
-
-    const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}`)
-    url.searchParams.set('key', apiKey)
-
-    const response = await fetch(url.toString(), { next: { revalidate: 3600 } })
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch archive: HTTP ${response.status}`)
-    }
-
-    const raw = (await response.json()) as GoogleApiResponse
-
-    return parseArchiveShows(raw)
 }

@@ -22,7 +22,8 @@ Check it out [here](<https://in-flames-bootlegs.kiriancaumes.fr/>) 👈
 
 - Node.js 24.x
 - A Google Sheet with all data (see [Data Source](#data-source))
-- A Google Sheet/YouTube Data API v3 key
+- A Google service account with read access to that Sheet (for the Sheets API)
+- A Google API key with the YouTube Data API v3 enabled (for playlist thumbnails)
 
 ## Getting Started
 
@@ -37,14 +38,18 @@ npm install
 Create a `.env.local` file at the root of the project:
 
 ```env
-# Required - URL of the Google Sheet exported as CSV
-GOOGLE_SHEET_URL=https://sheets.googleapis.com/v4/spreadsheets/<id>/values/<range>
+# Required - Service account JSON (on a single line) used to read the Google Sheet.
+# The Sheet must be shared (Viewer) with the service account's client_email.
+GOOGLE_API_JSON={"type":"service_account", ...}
 
-# Required - API key (for playlist thumbnail and sheet)
-GOOGLE_API_KEY=your_api_key_here
+# Required - ID of the Google Sheet (the <id> in its URL)
+GOOGLE_SHEET_ID=your_google_sheet_id
+
+# Required - Google API key with the YouTube Data API v3 enabled (playlist thumbnails)
+GOOGLE_API_KEY=your_youtube_api_key
 ```
 
-### 4. Run the development server
+### 3. Run the development server
 
 ```bash
 npm run dev
@@ -80,8 +85,9 @@ docker build -t in-flames-bootlegs .
 
 # Run the container (pass environment variables at runtime)
 docker run -p 3000:3000 \
-  -e GOOGLE_SHEET_URL="<your-sheet-url>" \
-  -e GOOGLE_API_KEY="<your-api-key>" \
+  -e GOOGLE_API_JSON='<service-account-json-on-one-line>' \
+  -e GOOGLE_SHEET_ID="<your-sheet-id>" \
+  -e GOOGLE_API_KEY="<your-youtube-api-key>" \
   in-flames-bootlegs
 ```
 
