@@ -27,11 +27,22 @@ export const metadata: Metadata = {
         type: 'website',
         title: 'In Flames - Bootlegs & Live Shows Archive',
         description: META_DESCRIPTION,
+        url: '/',
+        siteName: 'In Flames Bootlegs Archive',
+        images: [
+            {
+                url: '/favicon.png',
+                width: 512,
+                height: 512,
+                alt: 'In Flames Bootlegs & Live Shows Archive',
+            },
+        ],
     },
     twitter: {
-        card: 'summary_large_image',
+        card: 'summary',
         title: 'In Flames - Bootlegs & Live Shows Archive',
         description: META_DESCRIPTION,
+        images: ['/favicon.png'],
     },
     icons: {
         icon: '/favicon.svg',
