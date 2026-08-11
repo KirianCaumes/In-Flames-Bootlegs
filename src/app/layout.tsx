@@ -1,7 +1,7 @@
 // eslint-disable-next-line camelcase
 import { Oswald, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
 import GdprBanner from 'components/gdpr-banner'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 // eslint-disable-next-line no-restricted-imports
 import './globals.css'
 
@@ -27,16 +27,33 @@ export const metadata: Metadata = {
         type: 'website',
         title: 'In Flames - Bootlegs & Live Shows Archive',
         description: META_DESCRIPTION,
+        url: '/',
+        siteName: 'In Flames Bootlegs Archive',
+        images: [
+            {
+                url: '/favicon.png',
+                width: 512,
+                height: 512,
+                alt: 'In Flames Bootlegs & Live Shows Archive',
+            },
+        ],
     },
     twitter: {
-        card: 'summary_large_image',
+        card: 'summary',
         title: 'In Flames - Bootlegs & Live Shows Archive',
         description: META_DESCRIPTION,
+        images: ['/favicon.png'],
     },
     icons: {
         icon: '/favicon.svg',
         shortcut: '/favicon.svg',
     },
+}
+
+export const viewport: Viewport = {
+    themeColor: "#D50209",
+    width: 'device-width',
+    initialScale: 1,
 }
 
 /**
