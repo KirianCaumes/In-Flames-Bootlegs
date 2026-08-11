@@ -26,5 +26,7 @@ yarn-debug.log*
 yarn-error.log*
 
 .eslintcache
+tsconfig.tsbuildinfo
+
 # hunkwise
 .vscode/hunkwise/

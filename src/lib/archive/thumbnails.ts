@@ -3,6 +3,14 @@ import type { ArchiveShow } from 'lib/archive/shows'
 /** Fetch implementation used by thumbnail adapters. */
 type ThumbnailFetch = typeof fetch
 
+/**
+ * User agent used when fetching third-party media pages and images.
+ * A real browser string is required: bot protections such as Akamai verify the
+ * Googlebot identity by reverse DNS and reject spoofed crawler agents with a 403.
+ */
+const BROWSER_USER_AGENT =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+
 /** Google API playlist response subset used for thumbnail resolution. */
 interface GoogleApiPlaylistResponse {
     /** Playlist items. */
@@ -64,7 +72,7 @@ export async function resolveMediaThumbnail(mediaLink: string, fetchAdapter: Thu
  */
 export async function proxyThumbnailImage(imageUrl: string, fetchAdapter: ThumbnailFetch = fetch): Promise<Response> {
     const imageResponse = await fetchAdapter(imageUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
+        headers: { 'User-Agent': BROWSER_USER_AGENT },
         next: { revalidate: 31 * 24 * 3600 },
     })
 
@@ -137,9 +145,15 @@ async function resolveYoutubePlaylistThumbnail(parsed: URL, fetchAdapter: Thumbn
  */
 async function resolveOpenGraphThumbnail(mediaLink: string, fetchAdapter: ThumbnailFetch): Promise<string | null> {
     const response = await fetchAdapter(mediaLink, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
+        headers: { 'User-Agent': BROWSER_USER_AGENT },
         next: { revalidate: 31 * 24 * 3600 },
     })
+
+    // Bail out early: parsing an error page for og:image silently yields null and hides the real failure.
+    if (!response.ok) {
+        return null
+    }
+
     const html = await response.text()
     const match =
         /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/.exec(html) ??
