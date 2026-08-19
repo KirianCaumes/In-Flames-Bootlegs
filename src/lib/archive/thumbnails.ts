@@ -8,8 +8,7 @@ type ThumbnailFetch = typeof fetch
  * A real browser string is required: bot protections such as Akamai verify the
  * Googlebot identity by reverse DNS and reject spoofed crawler agents with a 403.
  */
-const BROWSER_USER_AGENT =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
 /** Google API playlist response subset used for thumbnail resolution. */
 interface GoogleApiPlaylistResponse {
@@ -83,7 +82,7 @@ export async function proxyThumbnailImage(imageUrl: string, fetchAdapter: Thumbn
     return new Response(imageResponse.body, {
         headers: {
             'Content-Type': imageResponse.headers.get('Content-Type') ?? 'image/jpeg',
-            'Cache-Control': 'public, max-age=2678400, stale-while-revalidate=2678400',
+            'Cache-Control': 'public, max-age=2678400, stale-while-revalidate=7776000, stale-if-error=7776000',
         },
     })
 }
