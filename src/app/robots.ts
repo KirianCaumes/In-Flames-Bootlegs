@@ -1,6 +1,5 @@
+import { SITE_URL } from 'lib/seo/graph'
 import type { MetadataRoute } from 'next'
-
-const SITE_URL = 'https://in-flames-bootlegs.kiriancaumes.fr'
 
 /** AI crawlers explicitly invited to index the archive for answer engines and model training. */
 const AI_CRAWLERS = ['GPTBot', 'OAI-SearchBot', 'PerplexityBot', 'ClaudeBot', 'Google-Extended', 'Bingbot']

@@ -1,7 +1,8 @@
+import { trackMediaClick, type MediaClickSource } from 'lib/analytics'
 import type { ArchiveShow } from 'lib/archive/shows'
 
 /** Source of a bootleg click. */
-export type BootlegClickSource = 'thumbnail' | 'footer'
+export type BootlegClickSource = MediaClickSource
 
 /** Bootleg click tracking input. */
 interface BootlegClickInput {
@@ -9,15 +10,6 @@ interface BootlegClickInput {
     readonly show: ArchiveShow
     /** Source of the click. */
     readonly source: BootlegClickSource
-}
-
-declare global {
-    interface Window {
-        /** Google Analytics gtag function. */
-        gtag?: (...args: Array<unknown>) => void
-        /** Google Analytics dataLayer array. */
-        dataLayer?: Array<unknown>
-    }
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -31,20 +23,11 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
  * @param input - Bootleg click details.
  */
 export function trackBootlegClick(input: BootlegClickInput): void {
-    trackEvent('bootleg_click', {
-        link_url: input.show.mediaLink,
+    trackMediaClick({
+        link: input.show.mediaLink,
         source: input.source,
         title: `${input.show.city} ${input.show.country} ${formatAnalyticsDate(input.show)}`,
     })
-}
-
-/**
- * Fire a Google Analytics custom event. No-ops when gtag is not loaded.
- * @param eventName - Event name.
- * @param params - Event parameters.
- */
-export function trackEvent(eventName: string, params?: Record<string, string | number | boolean>): void {
-    window.gtag?.('event', eventName, params)
 }
 
 /**

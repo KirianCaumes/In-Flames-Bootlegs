@@ -1,8 +1,11 @@
 'use client'
 
 import { memo } from 'react'
-import { getArchiveShowDateDisplay, getArchiveShowVenue, getArchiveShowYear } from 'lib/archive/shows'
-import { CommentPopover, Setlist, ShowBadges, ShowFlag, ShowLinks, ShowThumbnail } from 'components/archive/show-shared'
+import { Setlist, ShowLinks } from 'components/archive/show-shared'
+import { CommentPopover, CountryFlag, MediaBadges, MediaThumbnail } from 'components/shared/media'
+import { trackBootlegClick } from 'lib/archive/analytics'
+import { getArchiveShowDateDisplay, getArchiveShowImageAlt, getArchiveShowVenue, getArchiveShowYear } from 'lib/archive/shows'
+import { buildShowThumbnailPath } from 'lib/archive/thumbnails'
 import type { ArchiveShow } from 'lib/archive/shows'
 
 // ── ShowCard ──────────────────────────────────────────────────────────────────
@@ -29,26 +32,31 @@ const ShowCard = memo(function ShowCard({
 
     return (
         <article className="show-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col">
-            <ShowThumbnail
+            <MediaThumbnail
+                alt={getArchiveShowImageAlt(show)}
                 className="h-36 border-b border-gray-800"
-                date={date}
+                href={show.mediaLink}
+                onClick={() => {
+                    trackBootlegClick({ show, source: 'thumbnail' })
+                }}
                 overlay={
                     year ? (
-                        <span className="text-[11px] font-mono tabular-nums font-medium text-gray-300 bg-gray-950/60 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                        // eslint-disable-next-line max-len
+                        <span className="absolute top-2 right-2 text-[11px] font-mono tabular-nums font-medium text-gray-300 bg-gray-950/60 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
                             {year}
                         </span>
                     ) : null
                 }
                 priority={priority}
-                show={show}
                 sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1279px) 33vw, 296px"
+                thumbnailPath={buildShowThumbnailPath(show, date)}
             />
             <div className="p-4 flex flex-col gap-3 flex-1">
                 {/* Location */}
                 <div className="flex items-start gap-2 min-w-0">
                     <h3 className="flex-1 min-w-0">
                         <span className="flex items-center gap-2 min-w-0">
-                            <ShowFlag country={show.country} />
+                            <CountryFlag country={show.country} />
                             <span className="min-w-0 truncate font-semibold text-gray-100 leading-snug">
                                 {show.city || show.country || 'Unknown'}
                             </span>
@@ -72,7 +80,7 @@ const ShowCard = memo(function ShowCard({
                 </div>
 
                 {/* Badges */}
-                <ShowBadges show={show} />
+                <MediaBadges availability={show.availability} />
             </div>
 
             {/* Setlist */}

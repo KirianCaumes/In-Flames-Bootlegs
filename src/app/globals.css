@@ -19,6 +19,9 @@
     --color-brand-500: #d50209;
     --color-brand-600: #a80107;
 
+    /* Height of the sticky site header bar, used to offset the sticky year headers below it */
+    --spacing-header: 5.5rem;
+
     /* Type roles */
     --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
     --font-mono: var(--font-plex-mono), ui-monospace, 'SFMono-Regular', monospace;

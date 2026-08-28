@@ -6,14 +6,7 @@ import {
     type ArchiveShow,
 } from 'lib/archive/shows'
 import { buildShowThumbnailPath } from 'lib/archive/thumbnails'
-
-const SITE_URL = 'https://in-flames-bootlegs.kiriancaumes.fr'
-const WEBSITE_ID = `${SITE_URL}/#website`
-const BAND_ID = `${SITE_URL}/#in-flames`
-
-const ARCHIVE_DESCRIPTION =
-    // eslint-disable-next-line max-len
-    'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Swedish roots all the way to today.'
+import { ARCHIVE_DESCRIPTION, BAND_ID, buildBandNode, buildWebsiteNode, SITE_URL, WEBSITE_ID } from 'lib/seo/graph'
 
 /**
  * Build a descriptive, human-readable name for a show's MusicEvent node, derived from
@@ -115,33 +108,6 @@ function buildMusicEvent(show: ArchiveShow) {
  * @returns The schema.org graph object.
  */
 function buildGraph(shows: Array<ArchiveShow>) {
-    const website = {
-        '@type': 'WebSite',
-        '@id': WEBSITE_ID,
-        url: `${SITE_URL}/`,
-        name: 'In Flames Bootlegs & Live Shows Archive',
-        description: ARCHIVE_DESCRIPTION,
-        inLanguage: 'en',
-        potentialAction: {
-            '@type': 'SearchAction',
-            target: {
-                '@type': 'EntryPoint',
-                urlTemplate: `${SITE_URL}/?song={search_term_string}`,
-            },
-            'query-input': 'required name=search_term_string',
-        },
-    }
-
-    const band = {
-        '@type': 'MusicGroup',
-        '@id': BAND_ID,
-        name: 'In Flames',
-        genre: ['Melodic death metal', 'Alternative metal'],
-        foundingDate: '1990',
-        foundingLocation: { '@type': 'Place', name: 'Gothenburg, Sweden' },
-        sameAs: ['https://en.wikipedia.org/wiki/In_Flames'],
-    }
-
     const collectionPage = {
         '@type': 'CollectionPage',
         '@id': `${SITE_URL}/#archive`,
@@ -164,7 +130,7 @@ function buildGraph(shows: Array<ArchiveShow>) {
 
     return {
         '@context': 'https://schema.org',
-        '@graph': [website, band, collectionPage],
+        '@graph': [buildWebsiteNode(), buildBandNode(), collectionPage],
     }
 }
 

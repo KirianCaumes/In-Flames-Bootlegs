@@ -1,8 +1,11 @@
 'use client'
 
 import { memo } from 'react'
-import { CommentPopover, Setlist, ShowBadges, ShowFlag, ShowLinks, ShowThumbnail } from 'components/archive/show-shared'
-import { getArchiveShowDateDisplay, getArchiveShowVenue, type ArchiveShow } from 'lib/archive/shows'
+import { Setlist, ShowLinks } from 'components/archive/show-shared'
+import { CommentPopover, CountryFlag, MediaBadges, MediaThumbnail } from 'components/shared/media'
+import { trackBootlegClick } from 'lib/archive/analytics'
+import { getArchiveShowDateDisplay, getArchiveShowImageAlt, getArchiveShowVenue, type ArchiveShow } from 'lib/archive/shows'
+import { buildShowThumbnailPath } from 'lib/archive/thumbnails'
 
 // ── ShowRow ───────────────────────────────────────────────────────────────────
 
@@ -23,17 +26,21 @@ const ShowRow = memo(function ShowRow({
     return (
         <article className="show-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
             <div className="flex flex-col gap-4 p-3 sm:flex-row">
-                <ShowThumbnail
+                <MediaThumbnail
+                    alt={getArchiveShowImageAlt(show)}
                     className="w-full h-44 sm:w-56 sm:h-32 rounded-lg"
-                    date={date}
-                    show={show}
+                    href={show.mediaLink}
+                    onClick={() => {
+                        trackBootlegClick({ show, source: 'thumbnail' })
+                    }}
                     sizes="(max-width: 639px) 160px, 224px"
+                    thumbnailPath={buildShowThumbnailPath(show, date)}
                 />
                 <div className="flex flex-col gap-2 min-w-0 flex-1">
                     <div className="flex items-start gap-2 min-w-0">
                         <h3 className="flex-1 min-w-0">
                             <span className="flex items-center gap-2 min-w-0">
-                                <ShowFlag country={show.country} />
+                                <CountryFlag country={show.country} />
                                 <span className="min-w-0 truncate font-semibold text-gray-100 leading-snug">
                                     {show.city || show.country || 'Unknown'}
                                 </span>
@@ -55,7 +62,7 @@ const ShowRow = memo(function ShowRow({
                         </h3>
                         <CommentPopover comment={show.comment} />
                     </div>
-                    <ShowBadges show={show} />
+                    <MediaBadges availability={show.availability} />
                     <ShowLinks
                         className="mt-auto pt-1"
                         show={show}

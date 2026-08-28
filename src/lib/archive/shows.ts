@@ -1,14 +1,9 @@
-const DELETED_TITLE_PREFIX = '💀'
+import { formatSheetDate, parseSheetDate, toIsoDate } from 'lib/sheet-date'
+import { hashMediaLink, SHOW_ID_PREFIX } from 'lib/sheet-id'
+import type { GoogleApiResponse } from 'lib/google/sheets'
 
-/** Raw Google Sheet response shape for the bootlegs archive. */
-export interface GoogleApiResponse {
-    /** Range returned by Google Sheets. */
-    range: string
-    /** Major dimension returned by Google Sheets. */
-    majorDimension: string
-    /** Row values returned by Google Sheets. */
-    values?: Array<Array<string>>
-}
+/** Prefix marking a sheet row as deleted, kept in the document for history but excluded from the archive. */
+export const DELETED_TITLE_PREFIX = '💀'
 
 /** Raw show row keyed by Google Sheet headers. */
 type RawShowRow = Partial<Record<string, string>>
@@ -25,8 +20,8 @@ export interface ShowAvailability {
 
 /** Normalized concert show in the bootlegs archive. */
 export interface ArchiveShow {
-    /** Stable identifier base on the timestamp. */
-    readonly id: number
+    /** Stable identifier: {@link SHOW_ID_PREFIX} then {@link hashMediaLink} of the link. Rows are deduplicated by link, so it is unique. */
+    readonly id: string
     /** Parsed show date, or null when the sheet value is invalid. */
     readonly date: Date | null
     /** City where the concert took place. */
@@ -52,25 +47,6 @@ export interface ArchiveShow {
 }
 
 /**
- * Parse the DD/MM/YYYY date format used by the archive Google Sheet.
- * @param dateText - Sheet date text.
- * @returns Parsed date, or null when invalid.
- */
-export function parseArchiveDate(dateText: string): Date | null {
-    if (!dateText) {
-        return null
-    }
-
-    const [day, month, year] = dateText.split('/')
-    if (!day || !month || !year) {
-        return null
-    }
-
-    const parsed = new Date(Number.parseInt(year, 10), Number.parseInt(month, 10) - 1, Number.parseInt(day, 10))
-    return Number.isNaN(parsed.getTime()) ? null : parsed
-}
-
-/**
  * Get the year for an archive show.
  * @param show - Show to read.
  * @returns Year as text, or null when unavailable.
@@ -85,14 +61,7 @@ export function getArchiveShowYear(show: ArchiveShow): number | null {
  * @returns Formatted date, or 'Unknown date' when unavailable.
  */
 export function getArchiveShowDateDisplay(show: ArchiveShow): string {
-    if (!show.date) {
-        return 'Unknown date'
-    }
-    return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    }).format(show.date)
+    return formatSheetDate(show.date)
 }
 
 /**
@@ -126,18 +95,12 @@ export function getArchiveShowImageAlt(show: ArchiveShow): string {
 }
 
 /**
- * Format a show's date as an ISO calendar date (YYYY-MM-DD) using local parts to avoid timezone drift.
+ * Format a show's date as an ISO calendar date (YYYY-MM-DD).
  * @param show - Show to read.
  * @returns ISO date string, or null when the date is unavailable.
  */
 export function getArchiveShowIsoDate(show: ArchiveShow): string | null {
-    if (!show.date) {
-        return null
-    }
-    const year = show.date.getFullYear()
-    const month = String(show.date.getMonth() + 1).padStart(2, '0')
-    const day = String(show.date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
+    return toIsoDate(show.date)
 }
 
 /**
@@ -146,11 +109,10 @@ export function getArchiveShowIsoDate(show: ArchiveShow): string | null {
  * @returns Normalized archive show.
  */
 function normalizeShow(row: RawShowRow): ArchiveShow {
-    const dateText = row.Date ?? ''
-    const date = parseArchiveDate(dateText)
+    const mediaLink = row.Link ?? ''
     return {
-        id: date ? date.getTime() : 0,
-        date,
+        id: `${SHOW_ID_PREFIX}${hashMediaLink(mediaLink)}`,
+        date: parseSheetDate(row.Date ?? ''),
         city: row.City ?? '',
         country: row.Country ?? '',
         venue: row.Venue ?? '',
@@ -165,7 +127,7 @@ function normalizeShow(row: RawShowRow): ArchiveShow {
             hasVideo: row.Video === 'Yes',
             isFullShow: row.Full === 'Yes',
         },
-        mediaLink: row.Link ?? '',
+        mediaLink,
         setlistFmLink: row['Setlist.fm'] ?? '',
         comment: row.Comment ?? '',
     }
@@ -183,11 +145,20 @@ export function parseArchiveShows(raw: GoogleApiResponse): Array<ArchiveShow> {
     }
 
     const headers = rows[0].map(header => header.trim())
+    // Keeps one row per link: a repeated link means the same media entered twice, and both rows would share an id.
+    const seenLinks = new Set<string>()
+
     return rows
         .slice(1)
         .filter(row => row[0] && !row[0].startsWith(DELETED_TITLE_PREFIX))
-        .map(row => {
-            const rawRow = Object.fromEntries(headers.map((header, rowIndex) => [header, (row[rowIndex] ?? '').trim()]))
-            return normalizeShow(rawRow)
+        .map(row => Object.fromEntries(headers.map((header, columnIndex) => [header, (row[columnIndex] ?? '').trim()])))
+        .filter(row => {
+            if (seenLinks.has(row.Link)) {
+                return false
+            }
+            seenLinks.add(row.Link)
+
+            return true
         })
+        .map(row => normalizeShow(row))
 }

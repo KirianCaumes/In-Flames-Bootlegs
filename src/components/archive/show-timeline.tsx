@@ -24,7 +24,7 @@ export default function ShowTimeline({
             {groups.map(group => (
                 <section key={group.year}>
                     {/* Year header */}
-                    <div className="sticky top-[5.5rem] z-20 -mx-4 mb-4 flex items-center gap-3 bg-gray-950/90 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6">
+                    <div className="sticky top-header z-20 -mx-4 mb-4 flex items-center gap-3 bg-gray-950/90 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6">
                         <span className="text-2xl font-display font-bold text-brand-500 tabular-nums tracking-wide">{group.year}</span>
                         <span className="text-xs text-gray-500 font-mono">
                             {group.shows.length} {group.shows.length === 1 ? 'show' : 'shows'}
@@ -34,11 +34,10 @@ export default function ShowTimeline({
 
                     {/* Rail */}
                     <div className="relative ml-2 border-l-2 border-gray-800/70 pl-5 sm:pl-7 space-y-4">
-                        {group.shows.map((show, i) => (
+                        {group.shows.map(show => (
                             <div
                                 className="relative"
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`${show.id}-${i}`}
+                                key={show.id}
                             >
                                 <span
                                     // eslint-disable-next-line max-len

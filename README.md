@@ -59,7 +59,11 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Data Source
 
-The app reads from a Google Sheet that must have the following columns (in order):
+The app reads from a Google Sheet with two tabs.
+
+### `Live show` - full concerts, shown on `/`
+
+The following columns are expected (in order):
 
 | Column | Description |
 | --- | --- |
@@ -74,6 +78,23 @@ The app reads from a Google Sheet that must have the following columns (in order
 | `Link` | Primary media link |
 | `Setlist.fm` | Link to the Setlist.fm page |
 | `Comment` | Additional notes |
+
+A row whose `Title` starts with `💀` is treated as deleted and skipped.
+
+### `Various` - one-off performances, shown on `/miscellaneous`
+
+Award ceremonies, acoustic sessions, and guest features. The following columns are expected (in order):
+
+| Column | Description |
+| --- | --- |
+| `Title` | Performance title/name |
+| `Date` | Performance date (`DD/MM/YYYY`) |
+| `Event` | Event, show, or ceremony the performance took place at |
+| `Song(s)` | Song(s) performed, one per line |
+| `ProShot` | Whether a professional shot video exists |
+| `Video` | Whether any video exists |
+| `Link` | Media link, either a single video or a playlist |
+| `Comment` | Additional notes, usually the details of a guest feature |
 
 ## Docker
 
