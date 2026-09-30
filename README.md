@@ -108,7 +108,7 @@ Award ceremonies, acoustic sessions, and guest features. The following columns a
 npm run check-links -- --dry-run
 ```
 
-`💀` rows are skipped, so a dead link is reported once. Remove the `💀` once the link is back: it is checked again, and reported again if it dies. The service account must be an Editor of the sheet.
+`💀` rows are skipped, so a dead link is reported once. Remove the `💀` once the link is back: it is checked again, and reported again if it dies. The service account must be an Editor of the sheet. `LOCALE` (default `en-US`) sets how the email formats its date and numbers.
 
 ## Docker
 
