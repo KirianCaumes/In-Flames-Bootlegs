@@ -96,6 +96,20 @@ Award ceremonies, acoustic sessions, and guest features. The following columns a
 | `Link` | Media link, either a single video or a playlist |
 | `Comment` | Additional notes, usually the details of a guest feature |
 
+## Dead links checker
+
+`scripts/check-dead-links.ts` checks the `Link` of every row, emails the dead ones through the `MAIL_*` SMTP settings, then prefixes their title with `💀` in the sheet. It runs with plain Node, so it can be called from a cron:
+
+```bash
+# Every day at 6am
+0 6 * * * cd /path/to/In-Flames-Bootlegs && npm run check-links
+
+# Only print the dead links, without emailing nor marking them
+npm run check-links -- --dry-run
+```
+
+`💀` rows are skipped, so a dead link is reported once. Remove the `💀` once the link is back: it is checked again, and reported again if it dies. The service account must be an Editor of the sheet.
+
 ## Docker
 
 A `Dockerfile` is included for containerised deployments.

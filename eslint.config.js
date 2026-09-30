@@ -188,4 +188,13 @@ export default [
             'jsdoc/check-tag-names': ['warn', { typed: false }],
         },
     },
+    {
+        // Standalone Node scripts: Node cannot resolve the tsconfig path alias, the console is their output, and they run step by step.
+        files: ['scripts/**'],
+        rules: {
+            'no-restricted-imports': 'off',
+            'no-console': 'off',
+            'no-restricted-syntax': 'off',
+        },
+    },
 ]
