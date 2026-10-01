@@ -16,6 +16,9 @@ COPY --chown=usr:usr . .
 
 RUN npm run build && npm prune --omit=dev
 
+# Database of the cron scripts, meant to be mounted as a volume
+RUN mkdir -p /app/data && chown usr:usr /app/data
+
 USER usr
 
 EXPOSE 3000

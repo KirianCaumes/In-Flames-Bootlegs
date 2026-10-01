@@ -18,6 +18,9 @@ dist/
 .env.test.local
 .env.production.local
 
+# cron scripts database
+/data/
+
 # misc
 .DS_Store
 *.pem

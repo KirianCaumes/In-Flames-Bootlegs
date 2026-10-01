@@ -96,19 +96,28 @@ Award ceremonies, acoustic sessions, and guest features. The following columns a
 | `Link` | Media link, either a single video or a playlist |
 | `Comment` | Additional notes, usually the details of a guest feature |
 
-## Dead links checker
+## Scripts
 
-`scripts/check-dead-links.ts` checks the `Link` of every row, emails the dead ones through the `MAIL_*` SMTP settings, then prefixes their title with `💀` in the sheet. It runs with plain Node, so it can be called from a cron:
+Two scripts meant to be run by a cron, with plain Node (no build step). Both email their report through the `MAIL_*` SMTP settings, and `LOCALE` (default `en-US`) sets how the emails format dates and numbers. Pass `-- --dry-run` to only print the report.
 
 ```bash
-# Every day at 6am
 0 6 * * * cd /path/to/In-Flames-Bootlegs && npm run check-links
-
-# Only print the dead links, without emailing nor marking them
-npm run check-links -- --dry-run
+0 7 * * 1 cd /path/to/In-Flames-Bootlegs && npm run find-bootlegs
 ```
 
-`💀` rows are skipped, so a dead link is reported once. Remove the `💀` once the link is back: it is checked again, and reported again if it dies. The service account must be an Editor of the sheet. `LOCALE` (default `en-US`) sets how the email formats its date and numbers.
+### Dead links checker
+
+`npm run check-links` (`scripts/check-dead-links.ts`) checks the `Link` of every row, emails the dead ones, then prefixes their title with `💀` in the sheet. YouTube links go through the YouTube Data API, and a playlist is dead once all its videos are. Other links are dead on a 404 or 410 only.
+
+`💀` rows are skipped, so a dead link is reported once. Remove the `💀` once the link is back: it is checked again, and reported again if it dies. The service account must be an Editor of the sheet.
+
+### New bootlegs finder
+
+`npm run find-bootlegs` (`scripts/find-new-bootlegs.ts`), inspired by [In-Flames-Bootlegs-YT-Seeker](https://github.com/KirianCaumes/In-Flames-Bootlegs-YT-Seeker), searches YouTube for long "In Flames" videos, drops the ones already in the sheet (cells, links, notes and comments), scores the others and emails the likely live recordings. It is meant to run weekly.
+
+Each run reads the first page of 50 results of `"In Flames"` and `"In Flames" live`, over the last 30 days and over each year since 2010: the next pages hold almost no live recordings, and results vary from one call to the next, so every run also brings back older videos. That is 36 searches, against a quota of 100 searches and 10,000 units (100 per search) a day per Google project. A refused search is skipped until the next run.
+
+Every analyzed video is stored in `data/bootlegs.sqlite`, so it is analyzed and emailed only once: keep `/app/data` on a persistent volume when running in Docker. The service account's project must have the Drive API enabled to read the sheet comments.
 
 ## Docker
 
