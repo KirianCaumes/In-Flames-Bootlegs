@@ -1,23 +1,24 @@
 /**
  * Dead link checker, meant to be run by a cron: `npm run check-links` (`-- --dry-run` to only print).
  *
- * Checks the `Link` of every row, emails the dead ones, then prefixes their title with 💀 in the sheet.
+ * Checks the `Link` of every row, posts the dead ones on Discord, then prefixes their title with 💀 in the sheet.
  * 💀 rows are skipped, so a dead link is reported once. Removing the 💀 once it is restored puts it back under watch.
  */
-import nextEnv from '@next/env'
-import { getGoogleAccessToken } from '../src/lib/google/auth.ts'
-import { getLocale, getSheetLink, sendMail } from './utils/mail.ts'
-import { getYoutubePlaylistId, getYoutubeVideoId, getYoutubeVideos, youtube } from './utils/youtube.ts'
-import type { YoutubePlaylistItem } from './utils/youtube.ts'
-import type { GoogleApiResponse } from '../src/lib/google/sheets.ts'
-
-nextEnv.loadEnvConfig(process.cwd())
+import { Effect, Schema } from 'effect'
+import { COLORS, Discord } from './utils/discord.ts'
+import { Env } from './utils/env.ts'
+import { google } from './utils/google.ts'
+import { run } from './utils/run.ts'
+import { getYoutubePlaylistId, getYoutubeVideoId, getYoutubeVideos, youtube, YoutubePlaylistItem, YoutubeVideoId } from './utils/youtube.ts'
 
 /** Sheet tabs to check. */
 const SHEETS = ['Live show', 'Various']
 
 /** Prefix marking a sheet row as deleted. Mirrors `DELETED_TITLE_PREFIX`, which cannot be imported without the `lib/*` path alias. */
 const DELETED_TITLE_PREFIX = '💀'
+
+/** OAuth2 scope to read and mark the rows. */
+const SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
 
 /** A sheet row with a link to check. */
 interface SheetRow {
@@ -36,10 +37,15 @@ interface SheetRow {
 }
 
 /** Sheets API batchGet response subset. */
-interface SheetValues {
+const SheetValues = Schema.Struct({
     /** One range per requested tab, in order. */
-    readonly valueRanges: Array<GoogleApiResponse>
-}
+    valueRanges: Schema.Array(
+        Schema.Struct({
+            /** Rows, missing for an empty tab. */
+            values: Schema.optional(Schema.Array(Schema.Array(Schema.String))),
+        }),
+    ),
+})
 
 /**
  * Tell whether a link is dead.
@@ -48,106 +54,102 @@ interface SheetValues {
  * @param link - Link to check.
  * @returns True when the link is dead.
  */
-async function isDead(link: string): Promise<boolean> {
-    const videoId = getYoutubeVideoId(link)
-    if (videoId) {
-        return (await getYoutubeVideos([videoId], 'id')).length === 0
-    }
+const isDead = (link: string) =>
+    Effect.gen(function* () {
+        const videoId = getYoutubeVideoId(link)
+        if (videoId) {
+            return (yield* getYoutubeVideos([videoId], 'id', YoutubeVideoId)).length === 0
+        }
 
-    const playlistId = getYoutubePlaylistId(link)
-    if (playlistId) {
-        // Page by page, stopping at the first page holding an alive video.
-        let pageToken = ''
-        do {
-            const page = await youtube<YoutubePlaylistItem>('playlistItems', {
-                part: 'contentDetails',
-                playlistId,
-                maxResults: '50',
-                pageToken,
+        const playlistId = getYoutubePlaylistId(link)
+        if (playlistId) {
+            // Page by page, stopping at the first page holding an alive video.
+            let pageToken = ''
+            do {
+                const page = yield* youtube(
+                    'playlistItems',
+                    { part: 'contentDetails', playlistId, maxResults: '50', pageToken },
+                    YoutubePlaylistItem,
+                )
+                const videos = yield* getYoutubeVideos(
+                    page.items.map(item => item.contentDetails.videoId),
+                    'id',
+                    YoutubeVideoId,
+                )
+                if (videos.length > 0) {
+                    return false
+                }
+                pageToken = page.nextPageToken ?? ''
+            } while (pageToken)
+
+            return true
+        }
+
+        return yield* Effect.tryPromise(async () => {
+            const response = await fetch(link, {
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0 Safari/537.36' },
+                signal: AbortSignal.timeout(20_000),
             })
-            if (
-                (
-                    await getYoutubeVideos(
-                        page.items.map(item => item.contentDetails.videoId),
-                        'id',
-                    )
-                ).length > 0
-            ) {
-                return false
-            }
-            pageToken = page.nextPageToken ?? ''
-        } while (pageToken)
-
-        return true
-    }
-
-    try {
-        const response = await fetch(link, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0 Safari/537.36' },
-            signal: AbortSignal.timeout(20_000),
-        })
-        return response.status === 404 || response.status === 410
-    } catch (error) {
-        console.warn(`Could not check ${link}: ${String(error)}`)
-        return false
-    }
-}
-
-const token = await getGoogleAccessToken('https://www.googleapis.com/auth/spreadsheets')
-const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID ?? ''}/values`
-
-const response = await fetch(`${sheetUrl}:batchGet?${new URLSearchParams(SHEETS.map(sheet => ['ranges', sheet])).toString()}`, {
-    headers: { Authorization: `Bearer ${token}` },
-})
-if (!response.ok) {
-    throw new Error(`Failed to read the sheet: HTTP ${response.status} ${await response.text()}`)
-}
-
-const { valueRanges } = (await response.json()) as SheetValues
-const rows = valueRanges.flatMap(({ values = [] }, sheetIndex): Array<SheetRow> => {
-    const sheet = SHEETS[sheetIndex]
-    const [headers = [], ...cells] = values
-    const [titleColumn, linkColumn, dateColumn] = ['Title', 'Link', 'Date'].map(header => headers.indexOf(header))
-
-    return cells.flatMap((row, index) => {
-        const title = row[titleColumn] ?? ''
-        const link = row[linkColumn]?.trim() ?? ''
-        // + 2: rows are 1-based and the header row was taken out.
-        const cell = `${sheet}!${String.fromCharCode(65 + titleColumn)}${index + 2}`
-        return title && !title.startsWith(DELETED_TITLE_PREFIX) && URL.canParse(link)
-            ? [{ cell, sheet, row: index + 2, title, date: row[dateColumn] ?? '', link }]
-            : []
+            return response.status === 404 || response.status === 410
+        }).pipe(Effect.catch(error => Effect.logWarning(`Could not check ${link}: ${String(error.cause)}`).pipe(Effect.as(false))))
     })
-})
 
-const isRowDead = await Promise.all(rows.map(row => isDead(row.link)))
-const deadRows = rows.filter((_, index) => isRowDead[index])
-console.log(`${deadRows.length} dead link(s)\n${deadRows.map(row => `- ${row.cell} ${row.title}: ${row.link}`).join('\n')}`)
+const program = Effect.gen(function* () {
+    const { GOOGLE_SHEET_ID } = yield* Env
+    const discord = yield* Discord
+    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values`
+    const sheetLink = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit`
 
-if (deadRows.length > 0 && !process.argv.includes('--dry-run')) {
-    // Mail first: if sending fails, the rows are not marked and get reported on the next run.
-    const count = deadRows.length.toLocaleString(getLocale())
-    await sendMail(
-        `In Flames Bootlegs - ${count} dead link(s)`,
-        `<b>${count}</b> dead link${deadRows.length > 1 ? 's' : ''} found in the ` +
-            `<a href="${getSheetLink()}" target="_blank" rel="noopener">In Flames Bootlegs</a> sheet, now marked with ${DELETED_TITLE_PREFIX},`,
-        deadRows.map(row => ({
-            href: getSheetLink(),
-            title: row.title,
-            lines: [`${row.sheet}, row ${row.row}${row.date ? ` (${row.date})` : ''}`],
-            link: row.link,
-        })),
+    const { valueRanges } = yield* google(
+        `${sheetUrl}:batchGet?${new URLSearchParams(SHEETS.map(sheet => ['ranges', sheet])).toString()}`,
+        SCOPE,
+        SheetValues,
     )
+    const rows = valueRanges.flatMap(({ values = [] }, sheetIndex): Array<SheetRow> => {
+        const sheet = SHEETS[sheetIndex]
+        const [headers = [], ...cells] = values
+        const [titleColumn, linkColumn, dateColumn] = ['Title', 'Link', 'Date'].map(header => headers.indexOf(header))
 
-    const update = await fetch(`${sheetUrl}:batchUpdate`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        return cells.flatMap((row, index) => {
+            const title = row[titleColumn] ?? ''
+            const link = row[linkColumn]?.trim() ?? ''
+            // + 2: rows are 1-based and the header row was taken out.
+            const cell = `${sheet}!${String.fromCharCode(65 + titleColumn)}${index + 2}`
+            return title && !title.startsWith(DELETED_TITLE_PREFIX) && URL.canParse(link)
+                ? [{ cell, sheet, row: index + 2, title, date: row[dateColumn] ?? '', link }]
+                : []
+        })
+    })
+
+    const isRowDead = yield* Effect.forEach(rows, row => isDead(row.link), { concurrency: 'unbounded' })
+    const deadRows = rows.filter((_, index) => isRowDead[index])
+    yield* Effect.log(`${deadRows.length} dead link(s)\n${deadRows.map(row => `- ${row.cell} ${row.title}: ${row.link}`).join('\n')}`)
+
+    if (deadRows.length > 0 && !process.argv.includes('--dry-run')) {
+        const now = new Date().toISOString()
+        // Discord first: if sending fails, the rows are not marked and get reported on the next run.
+        yield* discord.send(
+            `**💀 ${deadRows.length} dead link${deadRows.length > 1 ? 's' : ''}** found in the [In Flames Bootlegs](${sheetLink}) sheet, ` +
+                `now marked with ${DELETED_TITLE_PREFIX}`,
+            deadRows.map(row => ({
+                title: row.title,
+                url: sheetLink,
+                color: COLORS.Dead,
+                fields: [
+                    { name: '📄 Sheet', value: `${row.sheet}, row ${row.row}`, inline: true },
+                    { name: '📅 Date', value: row.date || '-', inline: true },
+                    { name: '🔗 Link', value: row.link },
+                ],
+                footer: { text: 'In Flames Bootlegs' },
+                timestamp: now,
+            })),
+        )
+
+        yield* google(`${sheetUrl}:batchUpdate`, SCOPE, Schema.Unknown, {
             valueInputOption: 'RAW',
             data: deadRows.map(row => ({ range: row.cell, values: [[`${DELETED_TITLE_PREFIX} ${row.title}`]] })),
-        }),
-    })
-    if (!update.ok) {
-        throw new Error(`Failed to mark dead rows: HTTP ${update.status} ${await update.text()}`)
+        })
     }
-}
+})
+
+await run(program)

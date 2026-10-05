@@ -3,18 +3,17 @@
  * Inspired by In-Flames-Bootlegs-YT-Seeker.
  *
  * Searches YouTube for long "In Flames" videos of the last 30 days and of every past year, drops the ones already in the sheet
- * (cells, links, notes or comments) or in the database, scores the others and emails the likely live recordings.
- * Analyzed videos are then stored in the SQLite database, so each is emailed once.
+ * (cells, links, notes or comments) or in the database, scores the others and posts the likely live recordings on Discord.
+ * Analyzed videos are then stored in the SQLite database, so each is posted once.
  */
 import { mkdirSync } from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
-import nextEnv from '@next/env'
-import { getGoogleAccessToken } from '../src/lib/google/auth.ts'
-import { getLocale, sendMail } from './utils/mail.ts'
-import { getYoutubeVideos, youtube, YOUTUBE_VIDEO_ID } from './utils/youtube.ts'
-import type { YoutubeSearchResult, YoutubeVideo } from './utils/youtube.ts'
-
-nextEnv.loadEnvConfig(process.cwd())
+import { Effect, Schema } from 'effect'
+import { COLORS, Discord, discordDate } from './utils/discord.ts'
+import { Env } from './utils/env.ts'
+import { google } from './utils/google.ts'
+import { run } from './utils/run.ts'
+import { getYoutubeVideos, youtube, YOUTUBE_VIDEO_ID, YoutubeSearchResult, YoutubeVideo } from './utils/youtube.ts'
 
 /** Search terms: neither finds everything, so both run on every period. */
 const QUERIES = ['"In Flames"', '"In Flames" live']
@@ -22,7 +21,7 @@ const QUERIES = ['"In Flames"', '"In Flames" live']
 /** First year searched: YouTube capped uploads at 15 minutes until late 2010, and only long videos are searched. */
 const FIRST_YEAR = 2010
 
-/** Minimum score for a video to be emailed. */
+/** Minimum score for a video to be posted. */
 const MIN_SCORE = 4
 
 /** Sheet tabs whose cells and notes may hold YouTube links. */
@@ -114,60 +113,45 @@ const SEPARATOR = words('at|by|and|feat|with|vs|presents|w')
 const CATEGORY: Partial<Record<string, number>> = { 10: 2, 20: -4, 25: -4, 27: -2 }
 
 /** Drive comments page subset. */
-interface DriveCommentsPage {
-    /** Comments, missing when there are none. */
-    readonly comments?: Array<unknown>
+const DriveCommentsPage = Schema.Struct({
+    /** Comments, missing when there are none: only searched for YouTube links, so kept as is. */
+    comments: Schema.optional(Schema.Array(Schema.Unknown)),
     /** Token of the next page, when any. */
-    readonly nextPageToken?: string
-}
-
-/**
- * Call a Google API with the service account.
- * @param url - URL to fetch, query string included.
- * @param scope - OAuth2 scope to request.
- * @returns Raw response text.
- */
-async function google(url: string, scope: string): Promise<string> {
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${await getGoogleAccessToken(scope)}` } })
-    if (!response.ok) {
-        throw new Error(`Google API failed: HTTP ${response.status} ${await response.text()}`)
-    }
-
-    return response.text()
-}
+    nextPageToken: Schema.optional(Schema.String),
+})
 
 /**
  * Get every YouTube id of the sheet: cells, links, notes, and comments with their replies.
  * @returns Video ids.
  */
-async function getSheetVideoIds(): Promise<Set<string>> {
-    const sheetId = process.env.GOOGLE_SHEET_ID ?? ''
+const getSheetVideoIds = Effect.gen(function* () {
+    const { GOOGLE_SHEET_ID } = yield* Env
     const sheetQuery = new URLSearchParams([
         ['includeGridData', 'true'],
         ['fields', 'sheets.data.rowData.values(formattedValue,hyperlink,note)'],
         ...SHEETS.map(sheet => ['ranges', sheet]),
     ])
-    const texts = [
-        await google(
-            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?${sheetQuery.toString()}`,
-            'https://www.googleapis.com/auth/spreadsheets.readonly',
-        ),
-    ]
+    // Only searched for YouTube links, so kept as is.
+    const sheet = yield* google(
+        `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}?${sheetQuery.toString()}`,
+        'https://www.googleapis.com/auth/spreadsheets.readonly',
+        Schema.Unknown,
+    )
+    const texts = [JSON.stringify(sheet)]
 
     for (let pageToken: string | undefined = ''; pageToken !== undefined; ) {
         const query = new URLSearchParams({ pageSize: '100', fields: 'nextPageToken,comments(content,replies(content))', pageToken })
-        const page = JSON.parse(
-            await google(
-                `https://www.googleapis.com/drive/v3/files/${sheetId}/comments?${query.toString()}`,
-                'https://www.googleapis.com/auth/drive.readonly',
-            ),
-        ) as DriveCommentsPage
+        const page: typeof DriveCommentsPage.Type = yield* google(
+            `https://www.googleapis.com/drive/v3/files/${GOOGLE_SHEET_ID}/comments?${query.toString()}`,
+            'https://www.googleapis.com/auth/drive.readonly',
+            DriveCommentsPage,
+        )
         texts.push(JSON.stringify(page.comments ?? []))
         pageToken = page.nextPageToken
     }
 
     return new Set(texts.flatMap(text => [...text.matchAll(YOUTUBE_VIDEO_ID)].map(match => match[1])))
-}
+})
 
 /**
  * Search long "In Flames" videos over the last 30 days and over each year since FIRST_YEAR, most relevant first.
@@ -176,7 +160,7 @@ async function getSheetVideoIds(): Promise<Set<string>> {
  * and counts toward the 100 searches a day allowed per project.
  * @returns Video ids.
  */
-async function searchVideoIds(): Promise<Set<string>> {
+const searchVideoIds = Effect.gen(function* () {
     const now = new Date()
     const periods = [
         { publishedAfter: new Date(now.getTime() - 30 * 24 * 3600 * 1000).toISOString() },
@@ -185,32 +169,22 @@ async function searchVideoIds(): Promise<Set<string>> {
             publishedBefore: `${FIRST_YEAR + index + 1}-01-01T00:00:00Z`,
         })),
     ]
-    // Settled: a search refused by the quota (100 searches a day per project) must not lose the others.
-    const results = await Promise.allSettled(
-        periods.flatMap(period =>
-            QUERIES.map(q =>
-                youtube<YoutubeSearchResult>('search', {
-                    part: 'id',
-                    q,
-                    type: 'video',
-                    videoDuration: 'long',
-                    maxResults: '50',
-                    ...period,
-                }),
-            ),
-        ),
+    // Partitioned: a search refused by the quota (100 searches a day per project) must not lose the others.
+    const [pages, failures] = yield* Effect.partition(
+        periods.flatMap(period => QUERIES.map(q => ({ q, ...period }))),
+        params => youtube('search', { part: 'id', type: 'video', videoDuration: 'long', maxResults: '50', ...params }, YoutubeSearchResult),
+        { concurrency: 'unbounded' },
     )
 
-    const failures = results.flatMap(result => (result.status === 'rejected' ? [String(result.reason)] : []))
-    if (failures.length === results.length) {
-        throw new Error(`Every search failed: ${failures[0]}`)
+    if (pages.length === 0) {
+        return yield* Effect.fail(failures[0])
     }
-    failures.forEach(failure => {
-        console.warn(`Search failed, its videos wait for the next run: ${failure.split('\n')[0]}`)
-    })
+    yield* Effect.forEach(failures, failure =>
+        Effect.logWarning(`Search failed, its videos wait for the next run: ${failure.message.split('\n')[0]}`),
+    )
 
-    return new Set(results.flatMap(result => (result.status === 'fulfilled' ? result.value.items.map(item => item.id.videoId) : [])))
-}
+    return new Set(pages.flatMap(page => page.items.map(item => item.id.videoId)))
+})
 
 /**
  * Score a video: the higher, the likelier an In Flames live recording.
@@ -280,62 +254,80 @@ function parseDuration(duration: string): number {
     return ((Number(days) * 24 + Number(hours)) * 60 + Number(minutes)) * 60 + Number(seconds)
 }
 
-// Mounted as a volume once deployed.
-mkdirSync('data', { recursive: true })
-const db = new DatabaseSync('data/bootlegs.sqlite')
-db.exec(`CREATE TABLE IF NOT EXISTS videos (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    score INTEGER NOT NULL,
-    reasons TEXT NOT NULL,
-    seen_at TEXT NOT NULL DEFAULT (datetime('now'))
-)`)
-const isKnown = db.prepare('SELECT 1 FROM videos WHERE id = ?')
+const program = Effect.gen(function* () {
+    const discord = yield* Discord
 
-const [inSheet, found] = await Promise.all([getSheetVideoIds(), searchVideoIds()])
-const videos = await getYoutubeVideos<YoutubeVideo>(
-    [...found].filter(id => !inSheet.has(id) && !isKnown.get(id)),
-    'snippet,contentDetails',
-)
+    const db = yield* Effect.acquireRelease(
+        Effect.sync(() => {
+            // Mounted as a volume once deployed.
+            mkdirSync('data', { recursive: true })
+            const database = new DatabaseSync('data/bootlegs.sqlite')
+            database.exec(`CREATE TABLE IF NOT EXISTS videos (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                score INTEGER NOT NULL,
+                reasons TEXT NOT NULL,
+                seen_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )`)
+            return database
+        }),
+        database =>
+            Effect.sync(() => {
+                database.close()
+            }),
+    )
+    const isKnown = db.prepare('SELECT 1 FROM videos WHERE id = ?')
 
-const scored = videos
-    .map(video => {
-        const seconds = parseDuration(video.contentDetails.duration)
-        const [score, reasons] = scoreVideo(video.snippet, seconds)
-        return { ...video, seconds, score, reasons: reasons.join(', ') }
-    })
-    .toSorted((a, b) => b.score - a.score)
-const candidates = scored.filter(video => video.score >= MIN_SCORE)
+    const [inSheet, found] = yield* Effect.all([getSheetVideoIds, searchVideoIds], { concurrency: 'unbounded' })
+    const videos = yield* getYoutubeVideos(
+        [...found].filter(id => !inSheet.has(id) && !isKnown.get(id)),
+        'snippet,contentDetails',
+        YoutubeVideo,
+    )
 
-console.log(`${found.size} video(s) found, ${scored.length} new, ${candidates.length} candidate(s)`)
-candidates.forEach(video => {
-    console.log(`  [${video.score}] ${video.snippet.title} - https://www.youtube.com/watch?v=${video.id} (${video.reasons})`)
-})
+    const scored = videos
+        .map(video => {
+            const seconds = parseDuration(video.contentDetails.duration)
+            const [score, reasons] = scoreVideo(video.snippet, seconds)
+            return { ...video, seconds, score, reasons: reasons.join(', ') }
+        })
+        .toSorted((a, b) => b.score - a.score)
+    const candidates = scored.filter(video => video.score >= MIN_SCORE)
 
-if (!process.argv.includes('--dry-run')) {
-    // Mail first: if sending fails, nothing is stored and the videos are analyzed again on the next run.
-    if (candidates.length > 0) {
-        const count = candidates.length.toLocaleString(getLocale())
-        await sendMail(
-            `In Flames Bootlegs - ${count} new bootleg(s)`,
-            `<b>${count}</b> new bootleg${candidates.length > 1 ? 's' : ''} found on YouTube`,
-            candidates.map(video => ({
-                href: `https://www.youtube.com/watch?v=${video.id}`,
-                thumbnail: `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`,
-                title: video.snippet.title,
-                lines: [
-                    `${video.snippet.channelTitle} - ${Math.round(video.seconds / 60)} min`,
-                    `Published ${new Date(video.snippet.publishedAt).toLocaleDateString(getLocale())} - Score ${video.score}`,
-                ],
-            })),
-        )
+    yield* Effect.log(
+        `${found.size} video(s) found, ${scored.length} new, ${candidates.length} candidate(s)\n${candidates
+            .map(video => `  [${video.score}] ${video.snippet.title} - https://www.youtube.com/watch?v=${video.id} (${video.reasons})`)
+            .join('\n')}`,
+    )
+
+    if (!process.argv.includes('--dry-run')) {
+        // Discord first: if sending fails, nothing is stored and the videos are analyzed again on the next run.
+        if (candidates.length > 0) {
+            const now = new Date().toISOString()
+            yield* discord.send(
+                `**🔥 ${candidates.length} new bootleg${candidates.length > 1 ? 's' : ''}** found on YouTube`,
+                candidates.map(video => ({
+                    title: video.snippet.title,
+                    url: `https://www.youtube.com/watch?v=${video.id}`,
+                    color: COLORS.Bootleg,
+                    fields: [
+                        { name: '📺 Channel', value: video.snippet.channelTitle, inline: true },
+                        { name: '⏱️ Duration', value: `${Math.round(video.seconds / 60)} min`, inline: true },
+                        { name: '📅 Published', value: discordDate(new Date(video.snippet.publishedAt)), inline: true },
+                    ],
+                    thumbnail: { url: `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg` },
+                    footer: { text: 'In Flames Bootlegs' },
+                    timestamp: now,
+                })),
+            )
+        }
+
+        // One transaction, and OR IGNORE so an overlapping run cannot fail the batch halfway.
+        const insert = db.prepare('INSERT OR IGNORE INTO videos (id, title, score, reasons) VALUES (?, ?, ?, ?)')
+        db.exec('BEGIN')
+        scored.forEach(video => insert.run(video.id, video.snippet.title, video.score, video.reasons))
+        db.exec('COMMIT')
     }
+}).pipe(Effect.scoped)
 
-    // One transaction, and OR IGNORE so an overlapping run cannot fail the batch halfway.
-    const insert = db.prepare('INSERT OR IGNORE INTO videos (id, title, score, reasons) VALUES (?, ?, ?, ?)')
-    db.exec('BEGIN')
-    scored.forEach(video => insert.run(video.id, video.snippet.title, video.score, video.reasons))
-    db.exec('COMMIT')
-}
-
-db.close()
+await run(program)
