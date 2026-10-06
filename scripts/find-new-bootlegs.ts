@@ -305,13 +305,13 @@ const program = Effect.gen(function* () {
         if (candidates.length > 0) {
             const now = new Date().toISOString()
             yield* discord.send(
-                `**🔥 ${candidates.length} new bootleg${candidates.length > 1 ? 's' : ''}** found on YouTube`,
+                `🔥 ${candidates.length} new bootleg${candidates.length > 1 ? 's' : ''} found on YouTube, not yet in the In Flames Bootlegs sheet`,
                 candidates.map(video => ({
                     title: video.snippet.title,
                     url: `https://www.youtube.com/watch?v=${video.id}`,
+                    author: { name: video.snippet.channelTitle, url: `https://www.youtube.com/channel/${video.snippet.channelId}` },
                     color: COLORS.Bootleg,
                     fields: [
-                        { name: '📺 Channel', value: video.snippet.channelTitle, inline: true },
                         { name: '⏱️ Duration', value: `${Math.round(video.seconds / 60)} min`, inline: true },
                         { name: '📅 Published', value: discordDate(new Date(video.snippet.publishedAt)), inline: true },
                     ],

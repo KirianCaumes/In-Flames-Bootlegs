@@ -129,16 +129,16 @@ const program = Effect.gen(function* () {
         const now = new Date().toISOString()
         // Discord first: if sending fails, the rows are not marked and get reported on the next run.
         yield* discord.send(
-            `**💀 ${deadRows.length} dead link${deadRows.length > 1 ? 's' : ''}** found in the [In Flames Bootlegs](${sheetLink}) sheet, ` +
+            `💀 ${deadRows.length} dead link${deadRows.length > 1 ? 's' : ''} found in the In Flames Bootlegs sheet, ` +
                 `now marked with ${DELETED_TITLE_PREFIX}`,
             deadRows.map(row => ({
                 title: row.title,
-                url: sheetLink,
+                url: row.link,
+                author: { name: `${row.sheet}, row ${row.row}`, url: sheetLink },
                 color: COLORS.Dead,
                 fields: [
-                    { name: '📄 Sheet', value: `${row.sheet}, row ${row.row}`, inline: true },
+                    { name: '🌐 Site', value: new URL(row.link).hostname.replace(/^www\./, ''), inline: true },
                     { name: '📅 Date', value: row.date || '-', inline: true },
-                    { name: '🔗 Link', value: row.link },
                 ],
                 footer: { text: 'In Flames Bootlegs' },
                 timestamp: now,

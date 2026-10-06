@@ -5,7 +5,17 @@ import { Context, Data, Duration, Effect, Layer, Schedule } from 'effect'
 import { Env } from './env.ts'
 
 /** Discord limits of a message: https://discord.com/developers/docs/resources/message#embed-object-embed-limits */
-const LIMITS = { EMBEDS: 10, TITLE: 256, DESCRIPTION: 4096, FIELDS: 25, FIELD_NAME: 256, FIELD_VALUE: 1024, FOOTER: 2048, TOTAL: 6000 }
+const LIMITS = {
+    EMBEDS: 10,
+    TITLE: 256,
+    AUTHOR_NAME: 256,
+    DESCRIPTION: 4096,
+    FIELDS: 25,
+    FIELD_NAME: 256,
+    FIELD_VALUE: 1024,
+    FOOTER: 2048,
+    TOTAL: 6000,
+}
 
 /** Timeout of a webhook call, in milliseconds. */
 const TIMEOUT_MS = 30_000
@@ -21,6 +31,13 @@ export interface Embed {
     readonly url?: string
     /** Description. */
     readonly description?: string
+    /** Author, displayed above the title. */
+    readonly author?: {
+        /** Name. */
+        readonly name: string
+        /** Url of the name. */
+        readonly url?: string
+    }
     /** Color of the left border. */
     readonly color?: number
     /** Fields, displayed as a grid when inline. */
@@ -117,6 +134,7 @@ const post = (webhook: URL, body: object) =>
 function getSize(embed: Embed): number {
     return (
         embed.title.length +
+        (embed.author?.name.length ?? 0) +
         (embed.description?.length ?? 0) +
         (embed.footer?.text.length ?? 0) +
         (embed.fields ?? []).reduce((total, field) => total + field.name.length + field.value.length, 0)
@@ -133,6 +151,7 @@ function truncate(embed: Embed): Embed {
         ...embed,
         title: embed.title.slice(0, LIMITS.TITLE),
         description: embed.description?.slice(0, LIMITS.DESCRIPTION),
+        author: embed.author && { ...embed.author, name: embed.author.name.slice(0, LIMITS.AUTHOR_NAME) },
         fields: embed.fields
             ?.slice(0, LIMITS.FIELDS)
             .map(field => ({ ...field, name: field.name.slice(0, LIMITS.FIELD_NAME), value: field.value.slice(0, LIMITS.FIELD_VALUE) })),
@@ -161,7 +180,7 @@ function chunkEmbeds(embeds: Array<Embed>): Array<Array<Embed>> {
  * Send a message on a webhook, split in several messages when there are too many embeds.
  * Every message is tried, so one failing does not prevent the others from being sent.
  * @param webhook - Webhook URL.
- * @param content - Text of the first message, as Discord markdown.
+ * @param content - Text of the first message, displayed as raw text in push notifications.
  * @param embeds - Embeds, one per entry.
  * @returns Nothing, fails when a message failed.
  */

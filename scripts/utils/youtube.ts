@@ -32,6 +32,8 @@ export const YoutubeVideo = Schema.Struct({
         title: Schema.String,
         /** Description. */
         description: Schema.String,
+        /** Channel id. */
+        channelId: Schema.String,
         /** Channel name. */
         channelTitle: Schema.String,
         /** ISO publication date. */
