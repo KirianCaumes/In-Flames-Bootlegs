@@ -5,7 +5,8 @@
  * 💀 rows are skipped, so a dead link is reported once. Removing the 💀 once it is restored puts it back under watch.
  */
 import { Effect, Schema } from 'effect'
-import { COLORS, Discord } from './utils/discord.ts'
+import { parseSheetDate } from '../src/lib/sheet-date.ts'
+import { COLORS, Discord, discordDate } from './utils/discord.ts'
 import { Env } from './utils/env.ts'
 import { google } from './utils/google.ts'
 import { run } from './utils/run.ts'
@@ -46,6 +47,17 @@ const SheetValues = Schema.Struct({
         }),
     ),
 })
+
+/**
+ * Format a sheet date for Discord.
+ * @param dateText - Sheet date, in DD/MM/YYYY.
+ * @returns Discord timestamp, or the raw text when it is not a valid date.
+ */
+function formatDate(dateText: string): string {
+    const date = parseSheetDate(dateText)
+    // At noon UTC, so the reader sees the same day whatever its time zone.
+    return date ? discordDate(new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12))) : dateText || '-'
+}
 
 /**
  * Tell whether a link is dead.
@@ -138,7 +150,7 @@ const program = Effect.gen(function* () {
                 color: COLORS.Dead,
                 fields: [
                     { name: '🌐 Site', value: new URL(row.link).hostname.replace(/^www\./, ''), inline: true },
-                    { name: '📅 Date', value: row.date || '-', inline: true },
+                    { name: '📅 Date', value: formatDate(row.date), inline: true },
                 ],
                 footer: { text: 'In Flames Bootlegs' },
                 timestamp: now,
