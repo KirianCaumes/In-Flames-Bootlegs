@@ -1,8 +1,5 @@
-import SiteFooter from 'components/layout/site-footer'
-import SiteHeader from 'components/layout/site-header'
 import MiscArchive from 'components/miscellaneous/misc-archive'
 import MiscStructuredData from 'components/miscellaneous/structured-data'
-import { fetchArchiveShows } from 'lib/archive/fetch-shows'
 import { fetchMiscPerformances } from 'lib/miscellaneous/fetch-performances'
 import { MISCELLANEOUS_DESCRIPTION } from 'lib/seo/graph'
 import type { Metadata } from 'next'
@@ -45,26 +42,16 @@ export const metadata: Metadata = {
  * @returns Promise<JSX.Element>
  */
 export default async function MiscellaneousPage() {
-    // The section tabs show both counts, so the archive sheet is read here too. Both reads share the same hourly cache.
-    const [performances, shows] = await Promise.all([
-        fetchMiscPerformances().catch((error: unknown) => {
-            // eslint-disable-next-line no-console
-            console.error('Error fetching miscellaneous performances:', error)
-            return [] as Awaited<ReturnType<typeof fetchMiscPerformances>>
-        }),
-        fetchArchiveShows().catch((error: unknown) => {
-            // eslint-disable-next-line no-console
-            console.error('Error fetching archive shows:', error)
-            return [] as Awaited<ReturnType<typeof fetchArchiveShows>>
-        }),
-    ])
+    const performances = await fetchMiscPerformances().catch((error: unknown) => {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching miscellaneous performances:', error)
+        return [] as Awaited<ReturnType<typeof fetchMiscPerformances>>
+    })
 
     return (
         <>
             <MiscStructuredData performances={performances} />
-            <SiteHeader counts={{ shows: shows.length, performances: performances.length }} />
             <MiscArchive performances={performances} />
-            <SiteFooter />
         </>
     )
 }
