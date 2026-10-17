@@ -1,6 +1,7 @@
 'use client'
 
 import { memo } from 'react'
+import ReportIssueLink from 'components/shared/report-issue-link'
 import { MediaBadges, MediaLinks, MediaThumbnail, WatchIcon, type MediaLink } from 'components/shared/media'
 import { trackMediaClick } from 'lib/analytics'
 import {
@@ -108,6 +109,12 @@ const PerformanceCard = memo(function PerformanceCard({
 
             {/* Links footer */}
             <MediaLinks
+                actions={
+                    <ReportIssueLink
+                        mediaLink={performance.mediaLink}
+                        title={getMiscPerformanceImageAlt(performance)}
+                    />
+                }
                 className="px-4 py-3 border-t border-gray-800/50 bg-gray-950/40"
                 links={links}
             />

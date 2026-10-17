@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
+import SearchInput from 'components/shared/search-input'
 import { flagUrl } from 'lib/archive/flags'
-import { buildArchiveFacets, DEFAULT_ARCHIVE_QUERY, isArchiveQueryActive, patchArchiveQuery } from 'lib/archive/query'
+import { buildArchiveFacets, DEFAULT_ARCHIVE_QUERY, getArchiveQueryChips, isArchiveQueryActive, patchArchiveQuery } from 'lib/archive/query'
 import type { ArchiveShow } from 'lib/archive/shows'
 import type { ArchiveQuery, ArchiveSortOrder } from 'lib/archive/query'
 
@@ -276,9 +277,9 @@ interface ArchiveFiltersProps {
 
 /**
  * Filter panel for the archive page.
- * Renders year/country/city/song selectors, checkbox toggles, and sort order.
- * The panel collapses behind a toggle on mobile and is always expanded from the `sm` breakpoint up
- * (handled purely in CSS so it works without JS and keeps the page statically renderable).
+ * Renders the free-text search, then year/country/city/song selectors, checkbox toggles, and sort order.
+ * The search stays visible; the advanced filters are collapsed behind a toggle by default, at every size.
+ * Active filters stay visible while collapsed, as chips above the results and as a count on the toggle.
  * @returns Filter UI for refining the list of shows displayed in the archive.
  */
 export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveFiltersProps) {
@@ -297,18 +298,39 @@ export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveF
 
     const countryFlagSrc = query.country ? flagUrl(query.country) : null
     const isFiltered = isArchiveQueryActive(query)
+    // The search box sits outside the collapsible part, so it is not counted on the toggle.
+    const detailedFilterCount = getArchiveQueryChips(query).filter(chip => chip.key !== 'q').length
 
     return (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-6">
-            <div className="flex items-center justify-between">
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-4">
+            <SearchInput
+                id="filter-search"
+                label="Search shows"
+                onChange={v => {
+                    patch('q', v)
+                }}
+                placeholder="Search a city, festival, song, year... e.g. hellfest 2011"
+                value={query.q}
+            />
+
+            <div className="flex items-center justify-between mt-4">
                 <button
-                    className="sm:hidden flex items-center gap-1.5 cursor-pointer"
+                    aria-controls="archive-detailed-filters"
+                    aria-expanded={areFiltersOpen}
+                    className="flex items-center gap-1.5 cursor-pointer"
                     onClick={() => {
                         setAreFiltersOpen(prev => !prev)
                     }}
                     type="button"
                 >
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</span>
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Advanced filters</span>
+                    {detailedFilterCount > 0 && (
+                        <span className="rounded-full bg-brand-500 px-1.5 text-[11px] font-semibold leading-5 text-white tabular-nums">
+                            <span className="sr-only">(</span>
+                            {detailedFilterCount}
+                            <span className="sr-only"> active)</span>
+                        </span>
+                    )}
                     <svg
                         className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${areFiltersOpen ? 'rotate-180' : ''}`}
                         fill="none"
@@ -323,7 +345,6 @@ export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveF
                         />
                     </svg>
                 </button>
-                <p className="hidden sm:block text-xs font-semibold text-gray-400 uppercase tracking-widest">Filters</p>
                 <button
                     // eslint-disable-next-line max-len
                     className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 cursor-pointer disabled:text-stone-600 disabled:hover:bg-transparent disabled:cursor-not-allowed"
@@ -338,7 +359,10 @@ export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveF
             </div>
 
             <div
-                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out sm:max-h-none! ${areFiltersOpen ? 'max-h-[1200px]' : 'max-h-0'}`}
+                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${areFiltersOpen ? 'max-h-[1200px]' : 'max-h-0'}`}
+                id="archive-detailed-filters"
+                // Keeps the collapsed controls out of the tab order.
+                inert={!areFiltersOpen}
             >
                 <div className="space-y-4 mt-2">
                     {/* Primary filters */}

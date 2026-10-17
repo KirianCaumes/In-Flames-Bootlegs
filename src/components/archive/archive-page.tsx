@@ -3,12 +3,40 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import ArchiveFilters from 'components/archive/archive-filters'
+import FilterChips from 'components/archive/filter-chips'
 import ShowCard from 'components/archive/show-card'
 import ShowTimeline from 'components/archive/show-timeline'
 import ViewToggle from 'components/archive/view-toggle'
-import { applyArchiveQuery, DEFAULT_ARCHIVE_QUERY, parseArchiveQuery, serializeArchiveQuery, type ArchiveQuery } from 'lib/archive/query'
+import PageHero, { type HeroStat } from 'components/shared/page-hero'
+import {
+    applyArchiveQuery,
+    clearArchiveQueryField,
+    DEFAULT_ARCHIVE_QUERY,
+    getArchiveQueryChips,
+    parseArchiveQuery,
+    serializeArchiveQuery,
+    type ArchiveQuery,
+} from 'lib/archive/query'
+import { getArchiveShowYear, type ArchiveShow } from 'lib/archive/shows'
 import { DEFAULT_ARCHIVE_VIEW, parseArchiveView, type ArchiveView } from 'lib/archive/view'
-import type { ArchiveShow } from 'lib/archive/shows'
+import { useProgressiveList } from 'lib/progressive-list'
+
+/**
+ * Build the figures shown in the hero, over the whole archive rather than the filtered list.
+ * @param shows - Every show of the archive.
+ * @returns Hero figures.
+ */
+function buildHeroStats(shows: Array<ArchiveShow>): Array<HeroStat> {
+    const years = shows.map(show => getArchiveShowYear(show)).filter(year => year !== null)
+    const countries = new Set(shows.map(show => show.country.trim()).filter(Boolean))
+
+    return [
+        ...(years.length > 0 ? [{ label: 'Years', value: `${Math.min(...years)}–${Math.max(...years)}` }] : []),
+        { label: 'Countries', value: countries.size.toString() },
+        { label: 'Pro shots', value: shows.filter(show => show.availability.hasProShot).length.toString() },
+        { label: 'Full shows', value: shows.filter(show => show.availability.isFullShow).length.toString() },
+    ]
+}
 
 // ── ArchivePage ───────────────────────────────────────────────────────────────
 
@@ -65,6 +93,9 @@ export default function ArchivePage({
     }
 
     const filtered = useMemo(() => applyArchiveQuery(shows, deferredQuery), [shows, deferredQuery])
+    const rendered = useProgressiveList(filtered)
+    const heroStats = useMemo(() => buildHeroStats(shows), [shows])
+    const chips = getArchiveQueryChips(query)
     const resultsLabel = filtered.length === shows.length ? `${shows.length} shows` : `${filtered.length} of ${shows.length} shows`
 
     return (
@@ -73,6 +104,12 @@ export default function ArchivePage({
             id="main-content"
             tabIndex={-1}
         >
+            <PageHero
+                description="Community-curated recordings of In Flames concerts, from the early Gothenburg club days to the latest tours."
+                stats={heroStats}
+                title="Live shows & bootlegs"
+            />
+
             <h2 className="sr-only">Browse the In Flames live show &amp; bootleg archive</h2>
             {/* Filters */}
             <ArchiveFilters
@@ -81,9 +118,25 @@ export default function ArchivePage({
                 shows={shows}
             />
 
+            <FilterChips
+                chips={chips}
+                onClear={() => {
+                    handleQueryChange({ ...DEFAULT_ARCHIVE_QUERY, sort: query.sort })
+                }}
+                onRemove={key => {
+                    handleQueryChange(clearArchiveQueryField(query, key))
+                }}
+            />
+
             {/* Results bar */}
             <div className="flex items-center justify-between gap-4 mb-4 min-h-[2rem]">
-                <p className="text-sm text-gray-400">{filtered.length > 0 ? resultsLabel : ''}</p>
+                <p
+                    aria-live="polite"
+                    className="text-sm text-gray-400"
+                    role="status"
+                >
+                    {filtered.length > 0 ? resultsLabel : 'No matching shows'}
+                </p>
                 <ViewToggle
                     onViewChange={handleViewChange}
                     view={view}
@@ -124,10 +177,10 @@ export default function ArchivePage({
                 <div className={`transition-opacity duration-150 ${isStale ? 'opacity-50' : 'opacity-100'}`}>
                     {
                         {
-                            timeline: <ShowTimeline shows={filtered} />,
+                            timeline: <ShowTimeline shows={rendered} />,
                             grid: (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                                    {filtered.map((show, i) => (
+                                    {rendered.map((show, i) => (
                                         <ShowCard
                                             key={show.id}
                                             priority={i === 0}

@@ -459,20 +459,23 @@ function DefaultThumbnail() {
 }
 
 /**
- * Renders the external links available for an entry.
- * Returns null when there is no link, so the surrounding footer is omitted.
+ * Renders the external links available for an entry, followed by its actions.
+ * Returns null when there is neither, so the surrounding footer is omitted.
  * @returns JSX.Element or null.
  */
 export function MediaLinks({
     links,
+    actions = null,
     className = '',
 }: {
     /** Links to render. */
     readonly links: Array<MediaLink>
+    /** Actions pushed to the end of the footer, such as the report link. */
+    readonly actions?: ReactNode
     /** Extra container classes. */
     readonly className?: string
 }) {
-    if (links.length === 0) {
+    if (links.length === 0 && !actions) {
         return null
     }
 
@@ -491,6 +494,7 @@ export function MediaLinks({
                     {label}
                 </a>
             ))}
+            {actions}
         </div>
     )
 }

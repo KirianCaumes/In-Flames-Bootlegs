@@ -1,10 +1,13 @@
-import { getArchiveShowVenue, getArchiveShowYear, type ArchiveShow } from 'lib/archive/shows'
+import { getArchiveShowDateDisplay, getArchiveShowVenue, getArchiveShowYear, type ArchiveShow } from 'lib/archive/shows'
+import { matchesSearch, normalizeSearchText } from 'lib/search'
 
 /** Sort order for archive show dates. */
 export type ArchiveSortOrder = 'date-asc' | 'date-desc'
 
 /** Query state for the bootlegs archive. */
 export interface ArchiveQuery {
+    /** Free-text search across every field of a show. */
+    readonly q: string
     /** Year filter. */
     readonly year: string
     /** Country filter. */
@@ -40,7 +43,7 @@ export interface ArchiveFacets {
 }
 
 /** URL search parameter reader used by archive query parsing. */
-interface ArchiveQueryParams {
+export interface ArchiveQueryParams {
     /**
      * Read one parameter value.
      * @param key - Parameter name.
@@ -51,6 +54,7 @@ interface ArchiveQueryParams {
 
 /** Default archive query. */
 export const DEFAULT_ARCHIVE_QUERY: ArchiveQuery = {
+    q: '',
     year: '',
     country: '',
     city: '',
@@ -71,6 +75,7 @@ export function parseArchiveQuery(params: ArchiveQueryParams): ArchiveQuery {
     const sort = params.get('sort')
 
     return {
+        q: params.get('q') ?? DEFAULT_ARCHIVE_QUERY.q,
         year: params.get('year') ?? DEFAULT_ARCHIVE_QUERY.year,
         country: params.get('country') ?? DEFAULT_ARCHIVE_QUERY.country,
         city: params.get('city') ?? DEFAULT_ARCHIVE_QUERY.city,
@@ -91,6 +96,9 @@ export function parseArchiveQuery(params: ArchiveQueryParams): ArchiveQuery {
 export function serializeArchiveQuery(query: ArchiveQuery): string {
     const params = new URLSearchParams()
 
+    if (query.q) {
+        params.set('q', query.q)
+    }
     if (query.year) {
         params.set('year', query.year)
     }
@@ -170,6 +178,7 @@ export function buildArchiveFacets(shows: Array<ArchiveShow>): ArchiveFacets {
  */
 export function isArchiveQueryActive(query: ArchiveQuery): boolean {
     return (
+        query.q !== '' ||
         query.year !== '' ||
         query.country !== '' ||
         query.city !== '' ||
@@ -179,6 +188,45 @@ export function isArchiveQueryActive(query: ArchiveQuery): boolean {
         query.video ||
         query.full
     )
+}
+
+/** Filters that can be toggled off one by one, with the label of their chip. */
+export interface ArchiveQueryChip {
+    /** Query field the chip clears. */
+    readonly key: Exclude<keyof ArchiveQuery, 'sort'>
+    /** Chip label. */
+    readonly label: string
+}
+
+/**
+ * List the active filters of a query, in the order of the filter panel.
+ * @param query - Query to inspect.
+ * @returns One chip per active filter.
+ */
+export function getArchiveQueryChips(query: ArchiveQuery): Array<ArchiveQueryChip> {
+    const chips: Array<ArchiveQueryChip | null> = [
+        query.q ? { key: 'q', label: `"${query.q}"` } : null,
+        query.year ? { key: 'year', label: query.year } : null,
+        query.country ? { key: 'country', label: query.country } : null,
+        query.city ? { key: 'city', label: `City: ${query.city}` } : null,
+        query.venue ? { key: 'venue', label: `Venue: ${query.venue}` } : null,
+        query.song ? { key: 'song', label: `Song: ${query.song}` } : null,
+        query.proshot ? { key: 'proshot', label: 'Pro Shot' } : null,
+        query.video ? { key: 'video', label: 'Has Video' } : null,
+        query.full ? { key: 'full', label: 'Full Show' } : null,
+    ]
+
+    return chips.filter(chip => chip !== null)
+}
+
+/**
+ * Clear one filter of a query.
+ * @param query - Current query.
+ * @param key - Filter to clear.
+ * @returns Updated query.
+ */
+export function clearArchiveQueryField(query: ArchiveQuery, key: ArchiveQueryChip['key']): ArchiveQuery {
+    return { ...query, [key]: DEFAULT_ARCHIVE_QUERY[key] }
 }
 
 /**
@@ -199,6 +247,9 @@ export function patchArchiveQuery<K extends keyof ArchiveQuery>(query: ArchiveQu
  * @returns True when the show matches.
  */
 function matchesArchiveQuery(show: ArchiveShow, query: ArchiveQuery): boolean {
+    if (query.q && !matchesSearch(getArchiveShowSearchText(show), query.q)) {
+        return false
+    }
     if (query.year && getArchiveShowYear(show)?.toString() !== query.year) {
         return false
     }
@@ -225,6 +276,36 @@ function matchesArchiveQuery(show: ArchiveShow, query: ArchiveQuery): boolean {
     }
 
     return true
+}
+
+/** Search text per show, built once: the free-text filter runs on every keystroke. */
+const searchTextCache = new WeakMap<ArchiveShow, string>()
+
+/**
+ * Get the normalized text the free-text search looks into: location, venue, tour, date, notes and setlist.
+ * @param show - Show to read.
+ * @returns Normalized search text.
+ */
+function getArchiveShowSearchText(show: ArchiveShow): string {
+    let text = searchTextCache.get(show)
+    if (text === undefined) {
+        text = normalizeSearchText(
+            [
+                show.city,
+                show.country,
+                show.venue,
+                show.festival,
+                show.tour,
+                getArchiveShowYear(show)?.toString() ?? '',
+                getArchiveShowDateDisplay(show),
+                show.comment,
+                ...show.songs,
+            ].join('\n'),
+        )
+        searchTextCache.set(show, text)
+    }
+
+    return text
 }
 
 /**

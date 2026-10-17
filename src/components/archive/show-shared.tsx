@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import ReportIssueLink from 'components/shared/report-issue-link'
 import { MediaLinks, MusicIcon, WatchIcon, type MediaLink } from 'components/shared/media'
 import { trackBootlegClick } from 'lib/archive/analytics'
-import type { ArchiveShow } from 'lib/archive/shows'
+import { getArchiveShowImageAlt, type ArchiveShow } from 'lib/archive/shows'
 
 /**
  * Collapsible setlist for a show.
@@ -67,8 +68,8 @@ export function Setlist({
 }
 
 /**
- * Renders the external links (Watch, Setlist.fm) available for a show.
- * @returns JSX.Element or null when the show has no links.
+ * Renders the external links (Watch, Setlist.fm) available for a show, then its report link.
+ * @returns JSX.Element
  */
 export function ShowLinks({
     show,
@@ -103,6 +104,12 @@ export function ShowLinks({
 
     return (
         <MediaLinks
+            actions={
+                <ReportIssueLink
+                    mediaLink={show.mediaLink}
+                    title={getArchiveShowImageAlt(show)}
+                />
+            }
             className={className}
             links={links}
         />

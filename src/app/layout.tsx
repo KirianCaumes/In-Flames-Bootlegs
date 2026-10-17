@@ -1,6 +1,7 @@
 // eslint-disable-next-line camelcase
 import { Oswald, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
 import GdprBanner from 'components/gdpr-banner'
+import BackToTop from 'components/shared/back-to-top'
 import type { Metadata, Viewport } from 'next'
 // eslint-disable-next-line no-restricted-imports
 import './globals.css'
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-    themeColor: "#D50209",
+    themeColor: '#D50209',
     width: 'device-width',
     initialScale: 1,
 }
@@ -79,6 +80,7 @@ export default function RootLayout({
                     <style>{`.thumb-image{opacity:1 !important}`}</style>
                 </noscript>
                 {children}
+                <BackToTop />
                 <GdprBanner />
             </body>
         </html>

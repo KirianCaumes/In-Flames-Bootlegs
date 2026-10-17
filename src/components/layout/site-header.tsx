@@ -48,9 +48,6 @@ export default function SiteHeader({
 }) {
     const pathname = usePathname()
     const activeTab = TABS.find(tab => tab.href === pathname)
-    const isHome = pathname === '/'
-    // The wordmark is the page's <h1> on the archive home only; other pages carry their own heading in <main>.
-    const Wordmark = isHome ? 'h1' : 'p'
 
     return (
         <>
@@ -73,14 +70,15 @@ export default function SiteHeader({
                         </button>
                         <div className="w-px h-8 bg-gradient-to-b from-brand-500 to-brand-600 hidden sm:block" />
                         <div>
-                            <Wordmark className="leading-tight">
+                            {/* Every page carries its own <h1> in its hero, so the wordmark is plain text. */}
+                            <p className="leading-tight">
                                 <span className="block text-xl sm:text-2xl font-display font-bold tracking-wide uppercase text-brand-500">
                                     In Flames
                                 </span>
                                 <span className="block text-gray-400 text-xs sm:text-sm tracking-wide font-normal">
                                     Bootlegs &amp; Live Shows Archive
                                 </span>
-                            </Wordmark>
+                            </p>
                         </div>
                     </div>
                     {activeTab && (

@@ -1,3 +1,5 @@
+import { buildContactMailto } from 'lib/contact'
+
 // ── SiteFooter ────────────────────────────────────────────────────────────────
 
 /**
@@ -15,7 +17,7 @@ export default function SiteFooter() {
                     <a
                         // eslint-disable-next-line max-len
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-gray-400 border border-gray-800 hover:border-brand-500/40 hover:text-brand-500 transition-colors"
-                        href={`mailto:ajesterscollection@gmail.com?subject=${encodeURIComponent('Dead link - In Flames Archive')}`}
+                        href={buildContactMailto('Issue report')}
                     >
                         <svg
                             className="w-4 h-4"
@@ -24,19 +26,18 @@ export default function SiteFooter() {
                             viewBox="0 0 24 24"
                         >
                             <path
-                                // eslint-disable-next-line max-len
-                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={1.5}
                             />
                         </svg>
-                        Signal a dead link
+                        Report an issue
                     </a>
                     <a
                         // eslint-disable-next-line max-len
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-gray-400 border border-gray-800 hover:border-brand-500/40 hover:text-brand-500 transition-colors"
-                        href={`mailto:ajesterscollection@gmail.com?subject=${encodeURIComponent('New show suggestion - In Flames Archive')}`}
+                        href={buildContactMailto('New show suggestion')}
                     >
                         <svg
                             className="w-4 h-4"

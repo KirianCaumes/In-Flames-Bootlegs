@@ -28,6 +28,11 @@
     --font-display: var(--font-oswald), var(--font-plex-sans), sans-serif;
 }
 
+.show-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 340px;
+}
+
 @layer base {
     /* Custom scrollbar */
     ::-webkit-scrollbar {
