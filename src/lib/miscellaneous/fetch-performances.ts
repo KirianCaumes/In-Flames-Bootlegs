@@ -12,9 +12,8 @@ const RANGE_DATA = 'Various!A1:H9999'
  * @param range Display range to fetch.
  * @returns Promise resolving to all performances, oldest first.
  */
-export const fetchMiscPerformances = cache(
-    async (range = RANGE_DATA): Promise<Array<MiscPerformance>> =>
-        // Parsing stays outside unstable_cache, which stores JSON and would flatten the parsed Date fields into strings.
-        // React's cache() is per request and keeps real objects, so the layout and the page share one parsed list.
-        parseMiscPerformances(await getCachedSheetValues(range)),
+export const fetchMiscPerformances = cache(async (range = RANGE_DATA): Promise<Array<MiscPerformance>> =>
+    // Parsing stays outside unstable_cache, which stores JSON and would flatten the parsed Date fields into strings.
+    // React's cache() is per request and keeps real objects, so the layout and the page share one parsed list.
+    parseMiscPerformances(await getCachedSheetValues(range)),
 )

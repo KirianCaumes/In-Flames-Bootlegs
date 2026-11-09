@@ -139,7 +139,7 @@ const getSheetVideoIds = Effect.gen(function* () {
     )
     const texts = [JSON.stringify(sheet)]
 
-    for (let pageToken: string | undefined = ''; pageToken !== undefined; ) {
+    for (let pageToken: string | undefined = ''; pageToken !== undefined;) {
         const query = new URLSearchParams({ pageSize: '100', fields: 'nextPageToken,comments(content,replies(content))', pageToken })
         const page: typeof DriveCommentsPage.Type = yield* google(
             `https://www.googleapis.com/drive/v3/files/${GOOGLE_SHEET_ID}/comments?${query.toString()}`,

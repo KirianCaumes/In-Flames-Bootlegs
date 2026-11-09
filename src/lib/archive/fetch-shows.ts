@@ -12,9 +12,8 @@ const RANGE_DATA = 'Live show!A1:N9999'
  * @param range Display range to fetch.
  * @returns Promise resolving to all archive shows.
  */
-export const fetchArchiveShows = cache(
-    async (range = RANGE_DATA): Promise<Array<ArchiveShow>> =>
-        // Parsing stays outside unstable_cache, which stores JSON and would flatten the parsed Date fields into strings.
-        // React's cache() is per request and keeps real objects, so the layout and the page share one parsed list.
-        parseArchiveShows(await getCachedSheetValues(range)),
+export const fetchArchiveShows = cache(async (range = RANGE_DATA): Promise<Array<ArchiveShow>> =>
+    // Parsing stays outside unstable_cache, which stores JSON and would flatten the parsed Date fields into strings.
+    // React's cache() is per request and keeps real objects, so the layout and the page share one parsed list.
+    parseArchiveShows(await getCachedSheetValues(range)),
 )
