@@ -4,10 +4,8 @@ import { fetchMiscPerformances } from 'lib/miscellaneous/fetch-performances'
 import { MISCELLANEOUS_DESCRIPTION } from 'lib/seo/graph'
 import type { Metadata } from 'next'
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const dynamic = 'force-dynamic'
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const metadata: Metadata = {
     title: 'In Flames - Miscellaneous Performances',
     description: MISCELLANEOUS_DESCRIPTION,

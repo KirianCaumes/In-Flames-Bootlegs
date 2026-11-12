@@ -14,7 +14,6 @@ const META_DESCRIPTION =
     // eslint-disable-next-line max-len
     'The most complete community archive of In Flames bootlegs and live recordings. Discover 200+ live shows from their 1994 Swedish roots all the way to today.'
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const metadata: Metadata = {
     title: 'In Flames - Bootlegs & Live Shows Archive',
     metadataBase: new URL('https://in-flames-bootlegs.kiriancaumes.fr'),

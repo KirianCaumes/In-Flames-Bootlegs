@@ -8,3 +8,4 @@ log
 .stylelintcache
 package-lock.json
 *.md
+next-env.d.ts

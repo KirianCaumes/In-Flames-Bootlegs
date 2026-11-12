@@ -2,7 +2,6 @@ import ArchivePage from 'components/archive/archive-page'
 import StructuredData from 'components/structured-data'
 import { fetchArchiveShows } from 'lib/archive/fetch-shows'
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const dynamic = 'force-dynamic'
 
 /**
