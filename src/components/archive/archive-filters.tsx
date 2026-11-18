@@ -20,18 +20,22 @@ const CHECKBOX_FILTERS: Array<{
     /** Label for the filter */
     label: string
     /** Description for the filter */
-    tooltip?: string
+    tooltip: string
 }> = [
     {
         key: 'proshot',
-        label: 'Pro Shot',
+        label: 'Pro shot',
         tooltip:
             // eslint-disable-next-line max-len
             'Shows with professionally recorded video and/or audio footage available.\nNote: for some old shows it is difficult to classify the quality of the footage as pro shot or amateur.',
     },
-    { key: 'video', label: 'Has Video', tooltip: 'Shows with any kind of video footage available, including amateur recordings.' },
-    { key: 'full', label: 'Full Show', tooltip: 'Shows with a complete setlist recorded.' },
+    { key: 'video', label: 'Has video', tooltip: 'Shows with any kind of video footage available, including amateur recordings.' },
+    { key: 'full', label: 'Full show', tooltip: 'Shows with a complete setlist recorded.' },
 ]
+
+const FIELD_CLASS_NAME =
+    // eslint-disable-next-line max-len
+    'h-11 w-full bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all'
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
 
@@ -40,10 +44,10 @@ const CHECKBOX_FILTERS: Array<{
  * Positioned absolutely within relative containers.
  * @returns SVG element representing a downward pointing chevron.
  */
-function ChevronDown() {
+export function ChevronDown() {
     return (
         <svg
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -94,8 +98,7 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
             <div className="relative">
                 <input
                     autoComplete="off"
-                    // eslint-disable-next-line max-len
-                    className="w-full bg-gray-800 border border-gray-700 text-gray-200 placeholder-gray-600 rounded-xl px-3 py-2.5 text-sm pr-9 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all [&::-webkit-calendar-picker-indicator]:!hidden"
+                    className={`${FIELD_CLASS_NAME} px-3 pr-9 placeholder-gray-400 [&::-webkit-calendar-picker-indicator]:!hidden`}
                     id={id}
                     list={listId}
                     onChange={e => {
@@ -159,19 +162,19 @@ function ClearableInput({ id, label, placeholder, listId, options, value, onChan
 }
 
 /**
- * Props for the FilterCheckboxInput component.
+ * Props for the FilterToggle component.
  */
-interface FilterCheckboxInputProps {
-    /** Unique identifier for the checkbox and tooltip */
+interface FilterToggleProps {
+    /** Unique identifier for the button and its hint */
     readonly id: string
-    /** Label displayed next to the checkbox */
+    /** Label of the button */
     readonly label: string
-    /** Optional tooltip content displayed in a hint popover */
-    readonly tooltip: string | undefined
-    /** Whether the checkbox is currently checked */
-    readonly isChecked: boolean
-    /** Change handler for the checkbox */
-    readonly onChange: (isChecked: boolean) => void
+    /** Hint shown in a popover while the button is hovered or focused */
+    readonly tooltip: string
+    /** Whether the filter is on */
+    readonly isPressed: boolean
+    /** Change handler for the filter */
+    readonly onChange: (isPressed: boolean) => void
 }
 
 /**
@@ -198,69 +201,55 @@ function hideHintPopover(popoverId: string) {
 }
 
 /**
- * Checkbox filter with an optional hover/focus hint popover.
+ * Toggle button filter, with a hint popover shown on hover and focus.
  * @param props - Component props
- * @param props.id - Unique identifier for the checkbox and tooltip
- * @param props.label - Label displayed next to the checkbox
- * @param props.tooltip - Optional tooltip content displayed in a hint popover
- * @param props.isChecked - Whether the checkbox is currently checked
- * @param props.onChange - Change handler for the checkbox
- * @returns Checkbox filter input and optional tooltip trigger.
+ * @param props.id - Unique identifier for the button and its hint
+ * @param props.label - Label of the button
+ * @param props.tooltip - Hint shown in a popover while the button is hovered or focused
+ * @param props.isPressed - Whether the filter is on
+ * @param props.onChange - Change handler for the filter
+ * @returns Toggle button and its hint popover.
  */
-function FilterCheckboxInput({ id, label, tooltip, isChecked, onChange }: FilterCheckboxInputProps) {
+function FilterToggle({ id, label, tooltip, isPressed, onChange }: FilterToggleProps) {
     const popoverId = `${id}-hint`
 
     return (
-        <div className="flex items-center gap-1.5">
-            <label className="flex items-center gap-2 cursor-pointer group">
-                <input
-                    aria-describedby={tooltip ? popoverId : undefined}
-                    checked={isChecked}
-                    className="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-[#D50209] cursor-pointer"
-                    onChange={e => {
-                        onChange(e.target.checked)
-                    }}
-                    type="checkbox"
-                />
-                <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{label}</span>
-            </label>
-            {tooltip && (
-                <>
-                    <button
-                        aria-label={`Show ${label} filter hint`}
-                        // eslint-disable-next-line max-len
-                        className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-700 bg-gray-800 text-xs font-semibold text-gray-400 transition-colors hover:border-brand-500 hover:text-brand-500 focus:outline-none cursor-help"
-                        onBlur={() => {
-                            hideHintPopover(popoverId)
-                        }}
-                        onClick={e => {
-                            showHintPopover(popoverId, e.currentTarget)
-                        }}
-                        onFocus={e => {
-                            showHintPopover(popoverId, e.currentTarget)
-                        }}
-                        onMouseEnter={e => {
-                            showHintPopover(popoverId, e.currentTarget)
-                        }}
-                        onMouseLeave={() => {
-                            hideHintPopover(popoverId)
-                        }}
-                        type="button"
-                    >
-                        ?
-                    </button>
-                    <div
-                        // eslint-disable-next-line max-len
-                        className="mx-0 mt-0 mb-2 max-w-xs rounded-xl border border-gray-700 bg-gray-950 p-3 text-xs leading-relaxed text-gray-200 shadow-2xl whitespace-pre-line [position-area:top] backdrop:bg-transparent"
-                        id={popoverId}
-                        popover="hint"
-                        role="tooltip"
-                    >
-                        {tooltip}
-                    </div>
-                </>
-            )}
-        </div>
+        <>
+            <button
+                aria-describedby={popoverId}
+                aria-pressed={isPressed}
+                // eslint-disable-next-line max-len
+                className={`h-11 px-3.5 rounded-lg border text-sm transition-colors cursor-pointer ${isPressed ? 'border-brand-500 text-brand-500 font-medium' : 'border-gray-700 text-gray-300 hover:text-gray-100'}`}
+                id={id}
+                onBlur={() => {
+                    hideHintPopover(popoverId)
+                }}
+                onClick={() => {
+                    onChange(!isPressed)
+                }}
+                onFocus={e => {
+                    showHintPopover(popoverId, e.currentTarget)
+                }}
+                onMouseEnter={e => {
+                    showHintPopover(popoverId, e.currentTarget)
+                }}
+                onMouseLeave={() => {
+                    hideHintPopover(popoverId)
+                }}
+                type="button"
+            >
+                {label}
+            </button>
+            <div
+                // eslint-disable-next-line max-len
+                className="mx-0 mt-0 mb-2 max-w-xs rounded-lg border border-gray-700 bg-gray-950 p-3 text-xs leading-relaxed text-gray-200 shadow-2xl whitespace-pre-line [position-area:top] backdrop:bg-transparent"
+                id={popoverId}
+                popover="hint"
+                role="tooltip"
+            >
+                {tooltip}
+            </div>
+        </>
     )
 }
 
@@ -276,10 +265,10 @@ interface ArchiveFiltersProps {
 }
 
 /**
- * Filter panel for the archive page.
- * Renders the free-text search, then year/country/city/song selectors, checkbox toggles, and sort order.
- * The search stays visible; the advanced filters are collapsed behind a toggle by default, at every size.
- * Active filters stay visible while collapsed, as chips above the results and as a count on the toggle.
+ * Filter row for the archive page.
+ * The search, year, country and the three toggles stay visible; city, venue, song and sort order are collapsed
+ * behind a "More filters" toggle by default, at every size.
+ * Active collapsed filters stay visible as chips above the results and as a count on the toggle.
  * @returns Filter UI for refining the list of shows displayed in the archive.
  */
 export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveFiltersProps) {
@@ -298,41 +287,123 @@ export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveF
 
     const countryFlagSrc = query.country ? flagUrl(query.country) : null
     const isFiltered = isArchiveQueryActive(query)
-    // The search box sits outside the collapsible part, so it is not counted on the toggle.
-    const detailedFilterCount = getArchiveQueryChips(query).filter(chip => chip.key !== 'q').length
+    const detailedFilterCount = getArchiveQueryChips(query).filter(chip => ['city', 'venue', 'song'].includes(chip.key)).length
 
     return (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-4">
-            <SearchInput
-                id="filter-search"
-                label="Search shows"
-                onChange={v => {
-                    patch('q', v)
-                }}
-                placeholder="Search a city, festival, song, year... e.g. hellfest 2011"
-                value={query.q}
-            />
+        <div className="mb-4">
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="flex-[999_1_320px] min-w-0">
+                    <SearchInput
+                        id="filter-search"
+                        label="Search shows"
+                        onChange={v => {
+                            patch('q', v)
+                        }}
+                        placeholder="Search a city, festival, song, year... e.g. hellfest 2011"
+                        value={query.q}
+                    />
+                </div>
 
-            <div className="flex items-center justify-between mt-4">
+                <div className="relative flex-[1_1_140px]">
+                    <label
+                        className="sr-only"
+                        htmlFor="filter-year"
+                    >
+                        Year
+                    </label>
+                    <select
+                        className={`${FIELD_CLASS_NAME} appearance-none pl-3 pr-10 cursor-pointer`}
+                        id="filter-year"
+                        onChange={e => {
+                            patch('year', e.target.value)
+                        }}
+                        value={query.year}
+                    >
+                        <option value="">All years</option>
+                        {facets.years.map(y => (
+                            <option
+                                key={y}
+                                value={y}
+                            >
+                                {y}
+                            </option>
+                        ))}
+                    </select>
+                    <ChevronDown />
+                </div>
+
+                <div className="flex flex-[1_1_150px] items-center gap-2">
+                    {countryFlagSrc && (
+                        <Image
+                            alt={query.country}
+                            className="w-5 h-3.5 rounded-sm object-cover shadow shrink-0 text-transparent"
+                            height={14}
+                            src={countryFlagSrc}
+                            width={20}
+                        />
+                    )}
+                    <div className="relative flex-1">
+                        <label
+                            className="sr-only"
+                            htmlFor="filter-country"
+                        >
+                            Country
+                        </label>
+                        <select
+                            className={`${FIELD_CLASS_NAME} appearance-none pl-3 pr-10 cursor-pointer`}
+                            id="filter-country"
+                            onChange={e => {
+                                patch('country', e.target.value)
+                            }}
+                            value={query.country}
+                        >
+                            <option value="">All countries</option>
+                            {facets.countries.map(c => (
+                                <option
+                                    key={c}
+                                    value={c}
+                                >
+                                    {c}
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown />
+                    </div>
+                </div>
+
+                {CHECKBOX_FILTERS.map(({ key, label, tooltip }) => (
+                    <FilterToggle
+                        id={`filter-${key}`}
+                        isPressed={query[key]}
+                        key={key}
+                        label={label}
+                        onChange={isPressed => {
+                            patch(key, isPressed)
+                        }}
+                        tooltip={tooltip}
+                    />
+                ))}
+
                 <button
                     aria-controls="archive-detailed-filters"
                     aria-expanded={areFiltersOpen}
-                    className="flex items-center gap-1.5 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-11 px-1.5 text-sm text-gray-400 hover:text-gray-100 transition-colors cursor-pointer"
                     onClick={() => {
                         setAreFiltersOpen(prev => !prev)
                     }}
                     type="button"
                 >
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Advanced filters</span>
+                    More filters
                     {detailedFilterCount > 0 && (
-                        <span className="rounded-full bg-brand-500 px-1.5 text-[11px] font-semibold leading-5 text-white tabular-nums">
+                        <span className="rounded bg-brand-500 px-1.5 text-[11px] font-semibold leading-5 text-gray-950 tabular-nums">
                             <span className="sr-only">(</span>
                             {detailedFilterCount}
                             <span className="sr-only"> active)</span>
                         </span>
                     )}
                     <svg
-                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${areFiltersOpen ? 'rotate-180' : ''}`}
+                        aria-hidden="true"
+                        className={`w-4 h-4 transition-transform duration-200 ${areFiltersOpen ? 'rotate-180' : ''}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -345,17 +416,6 @@ export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveF
                         />
                     </svg>
                 </button>
-                <button
-                    // eslint-disable-next-line max-len
-                    className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 cursor-pointer disabled:text-stone-600 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-                    disabled={!isFiltered}
-                    onClick={() => {
-                        onQueryChange(DEFAULT_ARCHIVE_QUERY)
-                    }}
-                    type="button"
-                >
-                    Reset all
-                </button>
             </div>
 
             <div
@@ -364,160 +424,77 @@ export default function ArchiveFilters({ shows, query, onQueryChange }: ArchiveF
                 // Keeps the collapsed controls out of the tab order.
                 inert={!areFiltersOpen}
             >
-                <div className="space-y-4 mt-2">
-                    {/* Primary filters */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
-                        {/* Year */}
-                        <div className="flex flex-col gap-1">
-                            <label
-                                className="text-xs text-gray-400 font-medium"
-                                htmlFor="filter-year"
-                            >
-                                Year
-                            </label>
-                            <div className="relative">
-                                <select
-                                    // eslint-disable-next-line max-len
-                                    className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
-                                    id="filter-year"
-                                    onChange={e => {
-                                        patch('year', e.target.value)
-                                    }}
-                                    value={query.year}
-                                >
-                                    <option value="">All years</option>
-                                    {facets.years.map(y => (
-                                        <option
-                                            key={y}
-                                            value={y}
-                                        >
-                                            {y}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown />
-                            </div>
-                        </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto_auto] items-end gap-3 pt-4">
+                    <ClearableInput
+                        id="filter-city"
+                        label="City"
+                        listId="city-list"
+                        onChange={v => {
+                            patch('city', v)
+                        }}
+                        options={facets.cities}
+                        placeholder="e.g. Gothenburg"
+                        value={query.city}
+                    />
 
-                        {/* Country */}
-                        <div className="flex flex-col gap-1">
-                            <label
-                                className="text-xs text-gray-400 font-medium"
-                                htmlFor="filter-country"
-                            >
-                                Country
-                            </label>
-                            <div className="flex items-center gap-2">
-                                {countryFlagSrc && (
-                                    <Image
-                                        alt={query.country}
-                                        className="w-5 h-3.5 rounded-sm object-cover shadow shrink-0 text-transparent"
-                                        height={14}
-                                        src={countryFlagSrc}
-                                        width={20}
-                                    />
-                                )}
-                                <div className="relative flex-1">
-                                    <select
-                                        // eslint-disable-next-line max-len
-                                        className="appearance-none w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
-                                        id="filter-country"
-                                        onChange={e => {
-                                            patch('country', e.target.value)
-                                        }}
-                                        value={query.country}
-                                    >
-                                        <option value="">All countries</option>
-                                        {facets.countries.map(c => (
-                                            <option
-                                                key={c}
-                                                value={c}
-                                            >
-                                                {c}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown />
-                                </div>
-                            </div>
-                        </div>
+                    <ClearableInput
+                        id="filter-venue"
+                        label="Festival / venue"
+                        listId="venue-list"
+                        onChange={v => {
+                            patch('venue', v)
+                        }}
+                        options={facets.venues}
+                        placeholder="e.g. Wacken Open Air"
+                        value={query.venue}
+                    />
 
-                        <ClearableInput
-                            id="filter-city"
-                            label="City"
-                            listId="city-list"
-                            onChange={v => {
-                                patch('city', v)
-                            }}
-                            options={facets.cities}
-                            placeholder="e.g. Gothenburg"
-                            value={query.city}
-                        />
+                    <ClearableInput
+                        id="filter-song"
+                        label="Song in setlist"
+                        listId="song-list"
+                        onChange={v => {
+                            patch('song', v)
+                        }}
+                        options={facets.songs}
+                        placeholder="e.g. The Jester Race"
+                        value={query.song}
+                    />
 
-                        <ClearableInput
-                            id="filter-venue"
-                            label="Festival / Venue"
-                            listId="venue-list"
-                            onChange={v => {
-                                patch('venue', v)
-                            }}
-                            options={facets.venues}
-                            placeholder="e.g. Wacken Open Air"
-                            value={query.venue}
-                        />
-
-                        <ClearableInput
-                            id="filter-song"
-                            label="Song in setlist"
-                            listId="song-list"
-                            onChange={v => {
-                                patch('song', v)
-                            }}
-                            options={facets.songs}
-                            placeholder="e.g. The Jester Race"
-                            value={query.song}
-                        />
-                    </div>
-
-                    {/* Secondary filters */}
-                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-x-5 gap-y-2 pt-3 border-t border-gray-800/50">
-                        {CHECKBOX_FILTERS.map(({ key, label, tooltip }) => (
-                            <FilterCheckboxInput
-                                id={`filter-${key}`}
-                                isChecked={query[key]}
-                                key={key}
-                                label={label}
-                                onChange={isChecked => {
-                                    patch(key, isChecked)
+                    <div className="flex flex-col gap-1">
+                        <label
+                            className="text-xs text-gray-400 font-medium"
+                            htmlFor="sort-select"
+                        >
+                            Sort
+                        </label>
+                        <div className="relative">
+                            <select
+                                className={`${FIELD_CLASS_NAME} appearance-none pl-3 pr-10 cursor-pointer`}
+                                id="sort-select"
+                                onChange={e => {
+                                    patch('sort', e.target.value as ArchiveSortOrder)
                                 }}
-                                tooltip={tooltip}
-                            />
-                        ))}
-
-                        <div className="ml-auto flex items-center gap-2">
-                            <label
-                                className="text-xs text-gray-400"
-                                htmlFor="sort-select"
+                                value={query.sort}
                             >
-                                Sort
-                            </label>
-                            <div className="relative">
-                                <select
-                                    // eslint-disable-next-line max-len
-                                    className="appearance-none bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
-                                    id="sort-select"
-                                    onChange={e => {
-                                        patch('sort', e.target.value as ArchiveSortOrder)
-                                    }}
-                                    value={query.sort}
-                                >
-                                    <option value="date-asc">Date (oldest first)</option>
-                                    <option value="date-desc">Date (newest first)</option>
-                                </select>
-                                <ChevronDown />
-                            </div>
+                                <option value="date-asc">Date (oldest first)</option>
+                                <option value="date-desc">Date (newest first)</option>
+                            </select>
+                            <ChevronDown />
                         </div>
                     </div>
+
+                    <button
+                        // eslint-disable-next-line max-len
+                        className="h-11 px-3 rounded-lg text-sm font-medium text-brand-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors cursor-pointer disabled:text-gray-500 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                        disabled={!isFiltered}
+                        onClick={() => {
+                            onQueryChange(DEFAULT_ARCHIVE_QUERY)
+                        }}
+                        type="button"
+                    >
+                        Reset all
+                    </button>
                 </div>
             </div>
         </div>

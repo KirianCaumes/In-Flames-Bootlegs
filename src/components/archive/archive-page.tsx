@@ -96,11 +96,10 @@ export default function ArchivePage({
     const rendered = useProgressiveList(filtered)
     const heroStats = useMemo(() => buildHeroStats(shows), [shows])
     const chips = getArchiveQueryChips(query)
-    const resultsLabel = filtered.length === shows.length ? `${shows.length} shows` : `${filtered.length} of ${shows.length} shows`
 
     return (
         <main
-            className="max-w-7xl mx-auto px-4 sm:px-6 py-6"
+            className="max-w-7xl mx-auto px-4 sm:px-6 pt-8"
             id="main-content"
             tabIndex={-1}
         >
@@ -129,13 +128,26 @@ export default function ArchivePage({
             />
 
             {/* Results bar */}
-            <div className="flex items-center justify-between gap-4 mb-4 min-h-[2rem]">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 mb-6">
                 <p
                     aria-live="polite"
-                    className="text-sm text-gray-400"
+                    className="text-[13px] text-gray-400"
                     role="status"
                 >
-                    {filtered.length > 0 ? resultsLabel : 'No matching shows'}
+                    {filtered.length > 0 ? (
+                        <>
+                            <span className="tabular-nums text-gray-100">{filtered.length}</span>
+                            {filtered.length !== shows.length && (
+                                <>
+                                    {' of '}
+                                    <span className="tabular-nums">{shows.length}</span>
+                                </>
+                            )}
+                            {` shows, ${query.sort === 'date-asc' ? 'oldest' : 'newest'} first`}
+                        </>
+                    ) : (
+                        'No matching shows'
+                    )}
                 </p>
                 <ViewToggle
                     onViewChange={handleViewChange}
@@ -179,7 +191,7 @@ export default function ArchivePage({
                         {
                             timeline: <ShowTimeline shows={rendered} />,
                             grid: (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-[repeat(auto-fill,minmax(270px,1fr))] gap-x-5 gap-y-7">
                                     {rendered.map((show, i) => (
                                         <ShowCard
                                             key={show.id}

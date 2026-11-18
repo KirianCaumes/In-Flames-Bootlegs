@@ -22,22 +22,18 @@ const TABS: Array<{
     href: string
     /** Tab label. */
     label: string
-    /** Which count to show next to the label, and in the header counter when the tab is active. */
+    /** Which count to show next to the label. */
     countKey: keyof SectionCounts
-    /** What the header counter counts on this section. */
-    countLabel: string
 }> = [
-    { href: '/', label: 'Live shows', countKey: 'shows', countLabel: 'shows archived' },
-    { href: '/miscellaneous', label: 'Miscellaneous', countKey: 'performances', countLabel: 'performances' },
+    { href: '/', label: 'Live shows', countKey: 'shows' },
+    { href: '/miscellaneous', label: 'Miscellaneous', countKey: 'performances' },
 ]
 
 /**
- * Site chrome shared by every page: a sticky bar with the logo, wordmark and the current section's count,
- * followed by the section tabs.
- * The tabs scroll away with the page rather than staying pinned, and carry their own counts, so both section
- * sizes are visible at once. They are deliberately not the segmented control used by the grid/timeline toggle:
+ * Site chrome shared by every page, on one wrapping row: the signature, the section tabs with their counts,
+ * and the switcher to the sibling In Flames Closet site.
+ * The tabs are deliberately not the segmented control used by the grid/timeline toggle:
  * that idiom switches a view, while these navigate between pages.
- * The bar's height is mirrored by `--spacing-header` in globals.css, which offsets the sticky year headers of the timeline view.
  * @returns JSX.Element
  */
 export default function SiteHeader({
@@ -47,72 +43,67 @@ export default function SiteHeader({
     readonly counts: SectionCounts
 }) {
     const pathname = usePathname()
-    const activeTab = TABS.find(tab => tab.href === pathname)
 
     return (
-        <>
-            <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <button
-                            aria-label="Scroll to top"
-                            className="cursor-pointer"
-                            onClick={() => {
-                                window.scrollTo({ top: 0, behavior: 'smooth' })
-                            }}
-                            type="button"
-                        >
-                            <Image
-                                alt=""
-                                className="w-14 h-14 object-cover shrink-0"
-                                src={IconSvg as string}
-                            />
-                        </button>
-                        <div className="w-px h-8 bg-gradient-to-b from-brand-500 to-brand-600 hidden sm:block" />
-                        <div>
-                            {/* Every page carries its own <h1> in its hero, so the wordmark is plain text. */}
-                            <p className="leading-tight">
-                                <span className="block text-xl sm:text-2xl font-display font-bold tracking-wide uppercase text-brand-500">
-                                    In Flames
-                                </span>
-                                <span className="block text-gray-400 text-xs sm:text-sm tracking-wide font-normal">
-                                    Bootlegs &amp; Live Shows Archive
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    {activeTab && (
-                        <div className="text-right shrink-0">
-                            <div className="text-2xl font-display font-bold text-brand-500 tabular-nums">{counts[activeTab.countKey]}</div>
-                            <div className="text-xs text-gray-400">{activeTab.countLabel}</div>
-                        </div>
-                    )}
-                </div>
-            </header>
+        <header className="border-b border-gray-800">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center gap-x-7 gap-y-1">
+                {/* Every page carries its own <h1> in its hero, so the signature is plain text. */}
+                <Link
+                    className="inline-flex items-center gap-2.5 min-h-11"
+                    href="/"
+                >
+                    <Image
+                        alt=""
+                        className="w-9 h-9 shrink-0"
+                        src={IconSvg as string}
+                    />
+                    <span className="font-display font-semibold text-[21px] text-gray-100">
+                        In Flames <span className="text-brand-500">Bootlegs</span>
+                    </span>
+                </Link>
 
-            <div className="border-b border-gray-800">
                 <nav
                     aria-label="Archive sections"
-                    className="max-w-7xl mx-auto px-4 sm:px-6 flex gap-6"
+                    className="flex gap-5"
                 >
                     {TABS.map(({ href, label, countKey }) => {
                         const isActive = pathname === href
                         return (
                             <Link
                                 aria-current={isActive ? 'page' : undefined}
-                                // The negative margin lays the tab's own border over the strip's, so the active underline sits on it.
                                 // eslint-disable-next-line max-len
-                                className={`-mb-px flex items-baseline gap-2 border-b-2 py-3 text-sm font-medium transition-colors ${isActive ? 'border-brand-500 text-gray-100' : 'border-transparent text-gray-400 hover:border-gray-700 hover:text-gray-200'}`}
+                                className={`inline-flex items-center gap-2 min-h-11 transition-colors ${isActive ? 'font-medium text-gray-100 shadow-[inset_0_-2px_0_var(--color-brand-500)]' : 'text-gray-400 hover:text-gray-100'}`}
                                 href={href}
                                 key={href}
                             >
                                 {label}
-                                <span className="font-mono text-xs tabular-nums text-gray-500">{counts[countKey]}</span>
+                                <span className="text-xs font-normal tabular-nums text-gray-400">{counts[countKey]}</span>
                             </Link>
                         )
                     })}
                 </nav>
+
+                <nav
+                    aria-label="In Flames archives"
+                    className="sm:ml-auto flex border border-gray-800 rounded-lg overflow-hidden"
+                >
+                    <a
+                        className="inline-flex items-center gap-2 min-h-11 px-3.5 text-gray-400 hover:text-gray-100 transition-colors"
+                        href="https://in-flames-closet.kiriancaumes.fr"
+                    >
+                        <span className="w-2 h-2 rounded-full bg-[#f27700]" />
+                        Closet
+                    </a>
+                    <Link
+                        aria-current="page"
+                        className="inline-flex items-center gap-2 min-h-11 px-3.5 bg-gray-800 font-medium text-gray-100"
+                        href="/"
+                    >
+                        <span className="w-2 h-2 rounded-full bg-brand-500" />
+                        Bootlegs
+                    </Link>
+                </nav>
             </div>
-        </>
+        </header>
     )
 }

@@ -14,18 +14,16 @@
     --color-gray-900: #141414; /* cards, header, panels */
     --color-gray-950: #0a0a0a; /* root background, overlays */
 
-    /* Brand red */
-    --color-brand-400: #ff4040;
-    --color-brand-500: #d50209;
-    --color-brand-600: #a80107;
+    /* Brand red, shared with the other In Flames sites: hover, accent */
+    --color-brand-400: #f0574e;
+    --color-brand-500: #e6443d;
+}
 
-    /* Height of the sticky site header bar, used to offset the sticky year headers below it */
-    --spacing-header: 5.5rem;
-
-    /* Type roles */
-    --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
-    --font-mono: var(--font-plex-mono), ui-monospace, 'SFMono-Regular', monospace;
-    --font-display: var(--font-oswald), var(--font-plex-sans), sans-serif;
+/* Inline so the next/font variables, set on <body>, resolve where the utilities are used rather than on :root */
+@theme inline {
+    /* Type roles: Besley for the signature and page titles, Schibsted Grotesk for everything else */
+    --font-sans: var(--font-schibsted), system-ui, sans-serif;
+    --font-display: var(--font-besley), Georgia, serif;
 }
 
 .show-card {

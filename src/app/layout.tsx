@@ -1,14 +1,13 @@
 // eslint-disable-next-line camelcase
-import { Oswald, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
+import { Besley, Schibsted_Grotesk } from 'next/font/google'
 import GdprBanner from 'components/gdpr-banner'
 import BackToTop from 'components/shared/back-to-top'
 import type { Metadata, Viewport } from 'next'
 // eslint-disable-next-line no-restricted-imports
 import './globals.css'
 
-const plexSans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-plex-sans', display: 'swap' })
-const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex-mono', display: 'swap' })
-const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-oswald', display: 'swap' })
+const schibsted = Schibsted_Grotesk({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-schibsted', display: 'swap' })
+const besley = Besley({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-besley', display: 'swap' })
 
 const META_DESCRIPTION =
     // eslint-disable-next-line max-len
@@ -51,7 +50,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-    themeColor: '#D50209',
+    themeColor: '#0a0a0a',
     width: 'device-width',
     initialScale: 1,
 }
@@ -71,9 +70,7 @@ export default function RootLayout({
             lang="en"
             suppressHydrationWarning
         >
-            <body
-                className={`${plexSans.variable} ${plexMono.variable} ${oswald.variable} font-sans bg-gray-950 text-gray-100 min-h-screen`}
-            >
+            <body className={`${schibsted.variable} ${besley.variable} font-sans bg-gray-950 text-gray-100 min-h-screen`}>
                 {/* Thumbnails fade in via an onLoad handler; with JS disabled that never fires, so reveal them here. */}
                 <noscript>
                     <style>{`.thumb-image{opacity:1 !important}`}</style>

@@ -2,6 +2,7 @@
 
 import { useDeferredValue, useMemo, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { ChevronDown } from 'components/archive/archive-filters'
 import PerformanceCard from 'components/miscellaneous/performance-card'
 import PageHero, { type HeroStat } from 'components/shared/page-hero'
 import SearchInput from 'components/shared/search-input'
@@ -45,10 +46,6 @@ export default function MiscArchive({
 
     const filtered = useMemo(() => applyMiscQuery(performances, deferredQuery), [performances, deferredQuery])
     const heroStats = useMemo(() => buildHeroStats(performances), [performances])
-    const resultsLabel =
-        filtered.length === performances.length
-            ? `${performances.length} performances`
-            : `${filtered.length} of ${performances.length} performances`
 
     /**
      * Updates the query and syncs it to the URL.
@@ -62,7 +59,7 @@ export default function MiscArchive({
 
     return (
         <main
-            className="max-w-7xl mx-auto px-4 sm:px-6 py-6"
+            className="max-w-7xl mx-auto px-4 sm:px-6 pt-8"
             id="main-content"
             tabIndex={-1}
         >
@@ -74,9 +71,8 @@ export default function MiscArchive({
 
             <h2 className="sr-only">Browse the miscellaneous performances</h2>
 
-            {/* Search and sort */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-4 flex flex-col sm:flex-row gap-3 sm:items-center">
-                <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+                <div className="flex-[999_1_320px] min-w-0">
                     <SearchInput
                         id="misc-search"
                         label="Search performances"
@@ -87,51 +83,49 @@ export default function MiscArchive({
                         value={query.q}
                     />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="relative flex-[1_1_200px]">
                     <label
-                        className="text-xs text-gray-400"
+                        className="sr-only"
                         htmlFor="misc-sort"
                     >
                         Sort
                     </label>
-                    <div className="relative">
-                        <select
-                            // eslint-disable-next-line max-len
-                            className="appearance-none bg-gray-800 border border-gray-700 text-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
-                            id="misc-sort"
-                            onChange={e => {
-                                handleQueryChange({ ...query, sort: e.target.value as ArchiveSortOrder })
-                            }}
-                            value={query.sort}
-                        >
-                            <option value="date-asc">Date (oldest first)</option>
-                            <option value="date-desc">Date (newest first)</option>
-                        </select>
-                        <svg
-                            aria-hidden="true"
-                            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                d="M19 9l-7 7-7-7"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                            />
-                        </svg>
-                    </div>
+                    <select
+                        // eslint-disable-next-line max-len
+                        className="h-11 w-full appearance-none bg-gray-900 border border-gray-700 rounded-lg pl-3 pr-10 text-sm text-gray-100 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer"
+                        id="misc-sort"
+                        onChange={e => {
+                            handleQueryChange({ ...query, sort: e.target.value as ArchiveSortOrder })
+                        }}
+                        value={query.sort}
+                    >
+                        <option value="date-asc">Date (oldest first)</option>
+                        <option value="date-desc">Date (newest first)</option>
+                    </select>
+                    <ChevronDown />
                 </div>
             </div>
 
             {/* Results bar */}
             <p
                 aria-live="polite"
-                className="text-sm text-gray-400 mb-4"
+                className="text-[13px] text-gray-400 mb-6"
                 role="status"
             >
-                {filtered.length > 0 ? resultsLabel : 'No matching performances'}
+                {filtered.length > 0 ? (
+                    <>
+                        <span className="tabular-nums text-gray-100">{filtered.length}</span>
+                        {filtered.length !== performances.length && (
+                            <>
+                                {' of '}
+                                <span className="tabular-nums">{performances.length}</span>
+                            </>
+                        )}
+                        {` performances, ${query.sort === 'date-asc' ? 'oldest' : 'newest'} first`}
+                    </>
+                ) : (
+                    'No matching performances'
+                )}
             </p>
 
             {/* Empty state */}
@@ -145,8 +139,7 @@ export default function MiscArchive({
                         viewBox="0 0 24 24"
                     >
                         <path
-                            // eslint-disable-next-line max-len
-                            d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={1.5}
@@ -172,7 +165,7 @@ export default function MiscArchive({
             {/* Results */}
             {filtered.length > 0 && (
                 <div className={`transition-opacity duration-150 ${isStale ? 'opacity-50' : 'opacity-100'}`}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(270px,1fr))] gap-x-5 gap-y-7">
                         {filtered.map((performance, i) => (
                             <PerformanceCard
                                 key={performance.id}

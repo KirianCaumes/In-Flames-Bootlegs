@@ -8,14 +8,14 @@ import type { ArchiveView } from 'lib/archive/view'
 const OPTIONS: Array<{
     /** View value. */
     value: ArchiveView
-    /** Accessible label. */
+    /** Visible label. */
     label: string
     /** Icon element. */
     icon: JSX.Element
 }> = [
     {
         value: 'grid',
-        label: 'Grid view',
+        label: 'Grid',
         icon: (
             <svg
                 aria-description="Grid view icon"
@@ -36,7 +36,7 @@ const OPTIONS: Array<{
     },
     {
         value: 'timeline',
-        label: 'Timeline view',
+        label: 'Timeline',
         icon: (
             <svg
                 aria-description="Timeline view icon"
@@ -71,23 +71,26 @@ export default function ViewToggle({
     readonly onViewChange: (view: ArchiveView) => void
 }) {
     return (
-        <div className="inline-flex items-center rounded-xl border border-gray-800 bg-gray-900 p-0.5">
+        <div
+            aria-label="View"
+            className="inline-flex rounded-lg border border-gray-800 overflow-hidden"
+            role="group"
+        >
             {OPTIONS.map(({ value, label, icon }) => {
                 const isActive = view === value
                 return (
                     <button
-                        aria-label={label}
                         aria-pressed={isActive}
                         // eslint-disable-next-line max-len
-                        className={`flex items-center justify-center rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer ${isActive ? 'bg-gray-800 text-brand-500' : 'text-gray-500 hover:text-gray-300'}`}
+                        className={`inline-flex items-center gap-2 h-11 px-3.5 text-[13px] transition-colors cursor-pointer ${isActive ? 'bg-gray-800 font-medium text-gray-100' : 'text-gray-400 hover:text-gray-100'}`}
                         key={value}
                         onClick={() => {
                             onViewChange(value)
                         }}
-                        title={label}
                         type="button"
                     >
                         {icon}
+                        {label}
                     </button>
                 )
             })}

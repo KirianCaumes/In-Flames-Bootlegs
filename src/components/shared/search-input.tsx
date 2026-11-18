@@ -32,7 +32,7 @@ export default function SearchInput({
             </label>
             <svg
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -47,7 +47,7 @@ export default function SearchInput({
             <input
                 autoComplete="off"
                 // eslint-disable-next-line max-len
-                className="w-full bg-gray-800 border border-gray-700 text-gray-100 placeholder-gray-500 rounded-xl pl-11 pr-10 py-3 text-base sm:text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all [&::-webkit-search-cancel-button]:hidden"
+                className="h-11 w-full bg-gray-900 border border-gray-700 text-gray-100 placeholder-gray-400 rounded-lg pl-10 pr-10 text-base sm:text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all [&::-webkit-search-cancel-button]:hidden"
                 enterKeyHint="search"
                 id={id}
                 onChange={e => {

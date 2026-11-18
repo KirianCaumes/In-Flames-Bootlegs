@@ -211,9 +211,9 @@ export function getArchiveQueryChips(query: ArchiveQuery): Array<ArchiveQueryChi
         query.city ? { key: 'city', label: `City: ${query.city}` } : null,
         query.venue ? { key: 'venue', label: `Venue: ${query.venue}` } : null,
         query.song ? { key: 'song', label: `Song: ${query.song}` } : null,
-        query.proshot ? { key: 'proshot', label: 'Pro Shot' } : null,
-        query.video ? { key: 'video', label: 'Has Video' } : null,
-        query.full ? { key: 'full', label: 'Full Show' } : null,
+        query.proshot ? { key: 'proshot', label: 'Pro shot' } : null,
+        query.video ? { key: 'video', label: 'Has video' } : null,
+        query.full ? { key: 'full', label: 'Full show' } : null,
     ]
 
     return chips.filter(chip => chip !== null)

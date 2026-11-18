@@ -33,7 +33,7 @@ export default function FilterChips({
                     <button
                         aria-label={`Remove filter ${label}`}
                         // eslint-disable-next-line max-len
-                        className="inline-flex max-w-64 items-center gap-1.5 rounded-full border border-brand-500/30 bg-brand-500/10 py-1 pl-3 pr-2 text-xs font-medium text-gray-200 transition-colors hover:border-brand-500 hover:bg-brand-500/20 cursor-pointer"
+                        className="inline-flex max-w-64 items-center gap-1.5 rounded border border-gray-700 bg-gray-900 py-1 pl-2.5 pr-1.5 text-xs font-medium text-gray-200 transition-colors hover:border-gray-500 cursor-pointer"
                         onClick={() => {
                             onRemove(key)
                         }}

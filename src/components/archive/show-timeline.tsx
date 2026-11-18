@@ -24,16 +24,16 @@ export default function ShowTimeline({
             {groups.map(group => (
                 <section key={group.year}>
                     {/* Year header */}
-                    <div className="sticky top-header z-20 -mx-4 mb-4 flex items-center gap-3 bg-gray-950/90 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6">
-                        <span className="text-2xl font-display font-bold text-brand-500 tabular-nums tracking-wide">{group.year}</span>
-                        <span className="text-xs text-gray-500 font-mono">
+                    <div className="sticky top-0 z-20 -mx-4 mb-4 flex items-center gap-3 bg-gray-950/90 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6">
+                        <span className="text-2xl font-semibold tabular-nums text-gray-50">{group.year}</span>
+                        <span className="text-xs tabular-nums text-gray-400">
                             {group.shows.length} {group.shows.length === 1 ? 'show' : 'shows'}
                         </span>
-                        <div className="flex-1 h-px bg-gradient-to-r from-gray-800 to-transparent" />
+                        <div className="flex-1 h-px bg-gray-800" />
                     </div>
 
                     {/* Rail */}
-                    <div className="relative ml-2 border-l-2 border-gray-800/70 pl-5 sm:pl-7 space-y-4">
+                    <div className="relative ml-2 border-l-2 border-gray-800 pl-5 sm:pl-7 space-y-6">
                         {group.shows.map(show => (
                             <div
                                 className="relative"
@@ -41,7 +41,7 @@ export default function ShowTimeline({
                             >
                                 <span
                                     // eslint-disable-next-line max-len
-                                    className="absolute top-7 -left-[calc(1.25rem+7px)] sm:-left-[calc(1.75rem+7px)] w-3 h-3 rounded-full bg-brand-500 ring-4 ring-gray-950"
+                                    className="absolute top-7 -left-[calc(1.25rem+7px)] sm:-left-[calc(1.75rem+7px)] w-3 h-3 rounded-full bg-gray-500 ring-4 ring-gray-950"
                                 />
                                 <ShowRow show={show} />
                             </div>

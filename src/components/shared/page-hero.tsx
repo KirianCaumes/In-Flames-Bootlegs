@@ -26,8 +26,8 @@ export default function PageHero({
     return (
         <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10 pt-2 pb-6 mb-6 border-b border-gray-800">
             <div className="max-w-2xl">
-                <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-wide text-gray-50">{title}</h1>
-                <p className="mt-2 text-sm sm:text-base leading-relaxed text-gray-400">{description}</p>
+                <h1 className="font-display text-[34px] leading-tight font-semibold text-gray-50">{title}</h1>
+                <p className="mt-2 text-[15px] leading-relaxed text-gray-400">{description}</p>
             </div>
 
             {stats.length > 0 && (
@@ -38,7 +38,7 @@ export default function PageHero({
                             key={label}
                         >
                             <dt className="text-xs text-gray-400">{label}</dt>
-                            <dd className="font-mono text-lg sm:text-xl font-medium tabular-nums text-gray-100">{value}</dd>
+                            <dd className="text-xl font-medium tabular-nums text-gray-100">{value}</dd>
                         </div>
                     ))}
                 </dl>
