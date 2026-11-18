@@ -85,7 +85,7 @@ export default function SiteHeader({
 
                 <nav
                     aria-label="In Flames archives"
-                    className="sm:ml-auto flex border border-gray-800 rounded-lg overflow-hidden"
+                    className="sm:ml-auto flex border border-gray-800 rounded-lg overflow-hidden text-sm"
                 >
                     <a
                         className="inline-flex items-center gap-2 min-h-11 px-3.5 text-gray-400 hover:text-gray-100 transition-colors"
